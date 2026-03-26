@@ -1,0 +1,178 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    // For this prototype, we allow unauthenticated access so guests can use all features
+    function isAuthenticated() {
+      return true;
+    }
+    
+    function isOwner(userId) {
+      return true;
+    }
+    
+    function isDocOwner() {
+      return true;
+    }
+    
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+    
+    function isParticipant(participantIds) {
+      return true;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidUser() {
+      return hasRequiredFields(['uid', 'displayName', 'createdAt']) &&
+             validStringLength('displayName', 1, 100) &&
+             request.resource.data.createdAt is timestamp &&
+             (!('rating' in request.resource.data) || request.resource.data.rating is number) &&
+             (!('totalReviews' in request.resource.data) || request.resource.data.totalReviews is number) &&
+             (!('completedTransactions' in request.resource.data) || request.resource.data.completedTransactions is number);
+    }
+    
+    function isValidListing() {
+      return hasRequiredFields(['title', 'description', 'price', 'condition', 'imageUrl', 'sellerId', 'sellerName', 'status', 'createdAt']) &&
+             validStringLength('title', 1, 100) &&
+             validStringLength('description', 0, 5000) &&
+             request.resource.data.price is number && request.resource.data.price >= 0 &&
+             request.resource.data.condition in ['Mint', 'Near Mint', 'Excellent', 'Good', 'Lightly Played', 'Played', 'Poor'] &&
+             request.resource.data.imageUrl is string && request.resource.data.imageUrl.size() < 1048576 && // Max 1MB
+             validStringLength('sellerName', 1, 100) &&
+             request.resource.data.status in ['active', 'reserved', 'sold'] &&
+             request.resource.data.createdAt is timestamp &&
+             (!('buyerId' in request.resource.data) || validStringLength('buyerId', 1, 100));
+    }
+    
+    function isValidListingUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'price', 'condition', 'imageUrl', 'status', 'buyerId']) &&
+             (!('title' in request.resource.data) || validStringLength('title', 1, 100)) &&
+             (!('description' in request.resource.data) || validStringLength('description', 0, 5000)) &&
+             (!('price' in request.resource.data) || (request.resource.data.price is number && request.resource.data.price >= 0)) &&
+             (!('condition' in request.resource.data) || request.resource.data.condition in ['Mint', 'Near Mint', 'Excellent', 'Good', 'Lightly Played', 'Played', 'Poor']) &&
+             (!('imageUrl' in request.resource.data) || (request.resource.data.imageUrl is string && request.resource.data.imageUrl.size() < 1048576)) &&
+             (!('status' in request.resource.data) || request.resource.data.status in ['active', 'reserved', 'sold']) &&
+             (!('buyerId' in request.resource.data) || validStringLength('buyerId', 1, 100));
+    }
+
+    function isValidChat() {
+      return hasRequiredFields(['participantIds', 'listingId', 'listingTitle', 'createdAt']) &&
+             request.resource.data.participantIds is list && request.resource.data.participantIds.size() == 2 &&
+             validStringLength('listingId', 1, 100) &&
+             validStringLength('listingTitle', 1, 100) &&
+             request.resource.data.createdAt is timestamp;
+    }
+    
+    function isValidChatUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt']) &&
+             (!('lastMessage' in request.resource.data) || validStringLength('lastMessage', 1, 1000)) &&
+             (!('lastMessageAt' in request.resource.data) || request.resource.data.lastMessageAt is timestamp);
+    }
+
+    function isValidMessage() {
+      return hasRequiredFields(['chatId', 'senderId', 'text', 'createdAt']) &&
+             validStringLength('chatId', 1, 100) &&
+             validStringLength('text', 1, 1000) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidWantListing() {
+      return hasRequiredFields(['title', 'targetPrice', 'buyerId', 'buyerName', 'buyerPhoto', 'createdAt']) &&
+             validStringLength('title', 1, 100) &&
+             request.resource.data.targetPrice is number && request.resource.data.targetPrice >= 0 &&
+             validStringLength('buyerId', 1, 100) &&
+             validStringLength('buyerName', 1, 100) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidReview() {
+      return hasRequiredFields(['sellerId', 'buyerId', 'listingId', 'rating', 'createdAt']) &&
+             request.resource.data.rating is number && request.resource.data.rating >= 1 && request.resource.data.rating <= 5 &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    function isValidPortfolio() {
+      return hasRequiredFields(['items']) &&
+             request.resource.data.items is list &&
+             request.resource.data.items.size() <= 1000;
+    }
+
+    function isValidFollow() {
+      return hasRequiredFields(['followerId', 'followedId', 'createdAt']) &&
+             validStringLength('followerId', 1, 100) &&
+             validStringLength('followedId', 1, 100) &&
+             request.resource.data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isValidUser();
+      allow update: if isValidUser() && request.resource.data.uid == resource.data.uid && request.resource.data.createdAt == resource.data.createdAt;
+    }
+    
+    match /listings/{listingId} {
+      allow read: if true;
+      allow create: if isValidListing();
+      allow update: if isValidListingUpdate();
+      allow delete: if true;
+    }
+
+    match /wantListings/{listingId} {
+      allow read: if true;
+      allow create: if isValidWantListing();
+      allow update: if true;
+      allow delete: if true;
+    }
+    
+    match /chats/{chatId} {
+      allow read: if true;
+      allow create: if isValidChat();
+      allow update: if isValidChatUpdate();
+      
+      match /messages/{messageId} {
+        allow read: if true;
+        allow create: if isValidMessage();
+      }
+    }
+
+    match /favorites/{favoriteId} {
+      allow read: if true;
+      allow create: if true;
+      allow delete: if true;
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isValidReview();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /portfolios/{userId} {
+      allow read: if true;
+      allow create, update: if isValidPortfolio();
+      allow delete: if false;
+    }
+
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if isValidFollow();
+      allow delete: if true;
+    }
+  }
+}

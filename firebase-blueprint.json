@@ -1,0 +1,178 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the marketplace",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "followersCount": { "type": "number" },
+        "followingCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "displayName", "createdAt"]
+    },
+    "Listing": {
+      "title": "Listing",
+      "description": "A Pokémon card listing",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "condition": { "type": "string", "enum": ["Mint", "Near Mint", "Excellent", "Good", "Lightly Played", "Played", "Poor"] },
+        "imageUrl": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "sellerPhoto": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "sold"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "description", "price", "condition", "imageUrl", "sellerId", "sellerName", "status", "createdAt"]
+    },
+    "Chat": {
+      "title": "Chat",
+      "description": "A conversation between a buyer and a seller about a listing",
+      "type": "object",
+      "properties": {
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "listingId": { "type": "string" },
+        "listingTitle": { "type": "string" },
+        "listingImageUrl": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "lastMessageAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["participantIds", "listingId", "listingTitle", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A single message in a chat",
+      "type": "object",
+      "properties": {
+        "chatId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["chatId", "senderId", "text", "createdAt"]
+    },
+    "WantListing": {
+      "title": "WantListing",
+      "description": "A Pokémon card want listing",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "targetPrice": { "type": "number" },
+        "buyerId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "buyerPhoto": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "targetPrice", "buyerId", "buyerName", "createdAt"]
+    },
+    "Favorite": {
+      "title": "Favorite",
+      "description": "A user's favorite listing",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "listingId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "listingId", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A review for a seller after a transaction",
+      "type": "object",
+      "properties": {
+        "sellerId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "buyerPhoto": { "type": "string" },
+        "listingId": { "type": "string" },
+        "listingTitle": { "type": "string" },
+        "rating": { "type": "number", "description": "Rating from 1 to 5" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sellerId", "buyerId", "listingId", "rating", "createdAt"]
+    },
+    "Portfolio": {
+      "title": "Portfolio",
+      "description": "A user's card portfolio",
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "listingId": { "type": "string" },
+              "title": { "type": "string" },
+              "imageUrl": { "type": "string" },
+              "purchasePrice": { "type": "number" },
+              "acquiredAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      },
+      "required": ["items"]
+    },
+    "Follow": {
+      "title": "Follow",
+      "description": "A follow relationship between two users",
+      "type": "object",
+      "properties": {
+        "followerId": { "type": "string" },
+        "followedId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["followerId", "followedId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "listings/{listingId}": {
+      "schema": { "$ref": "#/entities/Listing" },
+      "description": "All Pokémon card listings"
+    },
+    "wantListings/{listingId}": {
+      "schema": { "$ref": "#/entities/WantListing" },
+      "description": "All Pokémon card want listings"
+    },
+    "chats/{chatId}": {
+      "schema": { "$ref": "#/entities/Chat" },
+      "description": "Chat sessions between users"
+    },
+    "chats/{chatId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Messages within a chat session"
+    },
+    "favorites/{favoriteId}": {
+      "schema": { "$ref": "#/entities/Favorite" },
+      "description": "User's favorite listings"
+    },
+    "reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Reviews for sellers"
+    },
+    "portfolios/{userId}": {
+      "schema": { "$ref": "#/entities/Portfolio" },
+      "description": "User's card portfolios"
+    },
+    "follows/{followId}": {
+      "schema": { "$ref": "#/entities/Follow" },
+      "description": "Follow relationships between users"
+    }
+  }
+}
