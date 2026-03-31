@@ -4,7 +4,8 @@ import { db } from './firebase';
 import { Listing, WantListing, PortfolioItem } from './types';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, BookOpen, ChevronRight, ChevronLeft, Clock, ShoppingBag, PlusCircle, Camera, Star, Repeat, Calendar, Filter, X, Image as ImageIcon, Briefcase, Loader2 } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronLeft, Clock, ShoppingBag, PlusCircle, Camera, Star, Repeat, Calendar, Filter, X, Image as ImageIcon, Briefcase, Loader2, TrendingUp } from 'lucide-react';
+import axios from 'axios';
 import { ARTICLES } from './articleData';
 import { useAuth } from './AuthContext';
 import { ConditionBadge } from './components/ConditionBadge';
@@ -63,6 +64,62 @@ export const Home: React.FC = () => {
   const [loadingWants, setLoadingWants] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [cardPrices, setCardPrices] = useState<any[]>([]);
+  const [pricesLoading, setPricesLoading] = useState(true);
+
+  // Fetch market prices from Firestore card_prices collection
+  const fetchCardPrices = async () => {
+    try {
+      const FIREBASE_PROJECT_ID = 'gen-lang-client-0326385388';
+      const FIREBASE_API_KEY = 'AIzaSyDSwhKXm7KqaHVO2kb2PQ6qmarySPcZyJ0';
+      const DATABASE_ID = 'abcd';
+
+      const response = await axios.post(
+        `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/${DATABASE_ID}/documents:runQuery`,
+        {
+          structuredQuery: {
+            from: { collectionId: 'card_prices' },
+            orderBy: [{ field: { fieldPath: 'latest_price_hkd' }, direction: 'DESCENDING' }],
+            limit: 10
+          }
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': FIREBASE_API_KEY,
+            'X-Goog-User-Project': FIREBASE_PROJECT_ID
+          }
+        }
+      );
+
+      const fetched: any[] = [];
+      for (const doc of response.data) {
+        if (doc.document) {
+          const f = doc.document.fields || {};
+          fetched.push({
+            id: doc.document.name.split('/').pop(),
+            card_name: f.card_name?.stringValue || f.title?.stringValue || 'Unknown',
+            grade: f.grade?.stringValue || '',
+            latest_price_sgd: f.latest_price_sgd?.integerValue || 0,
+            latest_price_hkd: f.latest_price_hkd?.integerValue || Math.round((f.latest_price_sgd?.integerValue || 0) * 6.1),
+            latest_price_jpy: f.latest_price_jpy?.integerValue,
+            source: f.source?.stringValue || 'Snkrdunk',
+            url: f.url?.stringValue || '',
+            scrape_time: f.scrape_time?.stringValue || '',
+          });
+        }
+      }
+      setCardPrices(fetched);
+      setPricesLoading(false);
+    } catch (err) {
+      console.error('Price fetch error:', err);
+      setPricesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCardPrices();
+  }, []);
   const [filters, setFilters] = useState({
     conditions: [] as string[],
     cardTypes: [] as string[],
@@ -515,6 +572,78 @@ export const Home: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Market Prices Section - Bento Grid */}
+      {cardPrices.length > 0 && (
+        <div className="mb-10">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-6 h-6 text-amber-500" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">市場行情</h2>
+          </div>
+          
+          {pricesLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {cardPrices.map((card, index) => (
+                <div 
+                  key={card.id}
+                  className={`relative overflow-hidden rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${
+                    index === 0 
+                      ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-amber-500/30' 
+                      : 'bg-white dark:bg-[#0d0d0d] border-gray-100 dark:border-white/10 hover:shadow-lg'
+                  }`}
+                >
+                  {/* Rank */}
+                  {index === 0 && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-amber-500 text-black text-[10px] font-black rounded-full z-10">
+                      #1
+                    </div>
+                  )}
+                  
+                  <div className="p-4">
+                    {/* Card Visual */}
+                    <div className={`w-full aspect-[3/4] rounded-xl mb-3 flex items-center justify-center ${
+                      index === 0 ? 'bg-amber-500/20' : 'bg-gray-50 dark:bg-white/5'
+                    }`}>
+                      <span className="text-3xl">
+                        {card.card_name.toLowerCase().includes('charizard') ? '🔥' :
+                         card.card_name.toLowerCase().includes('pikachu') || card.card_name.toLowerCase().includes('van gogh') ? '⚡' :
+                         card.card_name.toLowerCase().includes('lugia') ? '🦅' :
+                         card.card_name.toLowerCase().includes('rayquaza') ? '🐉' :
+                         card.card_name.toLowerCase().includes('giratina') ? '👾' :
+                         card.card_name.toLowerCase().includes('mewtwo') ? '🧬' :
+                         card.card_name.toLowerCase().includes('gengar') ? '👻' :
+                         card.card_name.toLowerCase().includes('dragonite') ? '🐲' : '🎴'}
+                      </span>
+                    </div>
+                    
+                    {/* Name */}
+                    <h3 className="font-bold text-gray-900 dark:text-white text-xs leading-tight mb-1 line-clamp-2">
+                      {card.card_name}
+                    </h3>
+                    <p className="text-gray-400 text-[10px] mb-2">{card.grade} · {card.source}</p>
+                    
+                    {/* Price */}
+                    <div className="border-t border-gray-100 dark:border-white/10 pt-2">
+                      <p className="text-gray-500 text-[10px]">HKD</p>
+                      <p className={`font-black tracking-tight leading-none ${
+                        index === 0 
+                          ? 'text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500' 
+                          : 'text-lg text-gray-900 dark:text-white'
+                      }`}>
+                        ${card.latest_price_hkd.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between mb-6 scroll-mt-24" id="listings-section">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">最新上架</h2>
