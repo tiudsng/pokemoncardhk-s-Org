@@ -3,6 +3,9 @@ import { getAuth, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 
 // Hardcoded Firebase config - no external JSON needed
+alert("firebase.ts 開始執行...");
+console.log("firebase.ts loading...");
+
 const firebaseConfig = {
   projectId: "gen-lang-client-0326385388",
   appId: "1:122336191579:web:2de07c0acb51b8b24c8b7e",
@@ -13,6 +16,9 @@ const firebaseConfig = {
   messagingSenderId: "122336191579",
   measurementId: ""
 };
+
+alert("firebase.ts config loaded! API Key: " + firebaseConfig.apiKey);
+console.log("✅ firebaseConfig defined:", firebaseConfig);
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);

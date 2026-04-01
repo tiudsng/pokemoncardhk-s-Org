@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TCG INVEST</title>
     <script>
-      // Step 1: Immediate alert - runs BEFORE any JS
+      // Step 1: Immediate alert
       alert("Step 1: HTML Head Script Loaded!");
       console.log("✅ index.html <head> script executed!");
       
-      // Step 2: Check Firebase config
-      alert("Firebase Key: " + (typeof firebaseConfig !== 'undefined' ? "已定義" : "未定義"));
+      // Step 2: Check if firebaseConfig global exists
+      alert("Firebase Key: " + (typeof firebaseConfig !== 'undefined' ? firebaseConfig.apiKey : "未定義 (正常，module scope)"));
+      console.log("firebaseConfig global:", typeof firebaseConfig !== 'undefined' ? firebaseConfig : "not in global scope (expected - it's in module)");
       
-      // Step 3: Catch ALL runtime errors (this runs before React's error handlers)
+      // Step 3: Error handlers
       window.onerror = function(msg, url, line) {
         alert("JS Error: " + msg + "\nLine: " + line);
         console.error("TCG Invest Error:", msg, "Line:", line);
         return false;
       };
       
-      // Step 4: Catch resource 404 errors
       window.addEventListener('error', function(e) {
         if (e.target && (e.target.src || e.target.href)) {
           alert("資源載入失敗 (404): " + (e.target.src || e.target.href));
