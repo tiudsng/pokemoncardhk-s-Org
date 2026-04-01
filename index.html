@@ -4,10 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TCG INVEST</title>
+    <script>
+      // Immediate alert on page load - runs BEFORE any JS
+      window.onerror = function(msg, url, line) {
+        alert("JS Error: " + msg + " Line: " + line);
+        console.error("TCG Invest Error:", msg, "Line:", line);
+        return false;
+      };
+      // Immediate marker
+      alert("TCG Invest HTML Head Script Loaded!");
+      console.log("✅ index.html <head> script executed!");
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
