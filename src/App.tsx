@@ -4,6 +4,7 @@ console.log("TCG Invest Version 2.0 - App.tsx loading...");
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import { Navbar } from './Navbar';
+import ErrorBoundary from './ErrorBoundary';
 import { Home } from './Home';
 import { CreateWantListing } from './CreateWantListing';
 import { CreateListing } from './CreateListing';
