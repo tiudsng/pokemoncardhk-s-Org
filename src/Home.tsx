@@ -582,22 +582,26 @@ export const Home: React.FC = () => {
       </div>
 
       {/* Market Prices Section - Bento Grid */}
-      {/* Always show market prices section if we have data OR if still loading */}
-      {cardPrices.length > 0 || pricesLoading ? (
+      {/* Market Prices Section */}
+      {cardPrices.length > 0 && !pricesLoading && (
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-6">
             <TrendingUp className="w-6 h-6 text-amber-500" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">市場行情</h2>
           </div>
-          
-          {pricesLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-2" />
-                <p className="text-gray-500 text-sm">Loading TCG Invest...</p>
-              </div>
-            </div>
-          ) : (
+          {(() => {
+            try {
+              const sorted = [...cardPrices].sort((a, b) => b.latest_price_hkd - a.latest_price_hkd);
+              return sorted.slice(0, 5).map((card, index) => (
+                <div key={card.id} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <p className="font-bold">{card.card_name || card.title}</p>
+                  <p className="text-xl font-black">HK${Number(card.latest_price_hkd || 0).toLocaleString()}</p>
+                </div>
+              ));
+            } catch (e) {
+              return <p className="text-red-500">Failed to load prices</p>;
+            }
+          })()}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {cardPrices.map((card, index) => (
                 <div 
