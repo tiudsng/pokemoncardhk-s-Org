@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const ai = new GoogleGenAI({ apiKey: 'AIzaSyA0H6r38ukNTY1HsQ-uHU-Fe1SfK229RDM' });
 
 export const getMarketInsights = async (query: string) => {
   try {
