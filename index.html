@@ -5,15 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TCG INVEST</title>
     <script>
-      // Immediate alert on page load - runs BEFORE any JS
+      // Step 1: Immediate alert - runs BEFORE any JS
+      alert("Step 1: HTML Head Script Loaded!");
+      console.log("✅ index.html <head> script executed!");
+      
+      // Step 2: Check Firebase config
+      alert("Firebase Key: " + (typeof firebaseConfig !== 'undefined' ? "已定義" : "未定義"));
+      
+      // Step 3: Catch ALL runtime errors (this runs before React's error handlers)
       window.onerror = function(msg, url, line) {
-        alert("JS Error: " + msg + " Line: " + line);
+        alert("發現報錯: " + msg + "\n行數: " + line);
         console.error("TCG Invest Error:", msg, "Line:", line);
         return false;
       };
-      // Immediate marker
-      alert("TCG Invest HTML Head Script Loaded!");
-      console.log("✅ index.html <head> script executed!");
+      
+      console.log("✅ Global error handler registered");
     </script>
   </head>
   <body>
