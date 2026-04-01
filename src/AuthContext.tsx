@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, googleProvider } from './firebase';
+import { auth, db, GoogleAuthProvider } from './firebase';
 
 // Extend the user type to support our guest user
 export interface AppUser {
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(auth, GoogleAuthProvider);
     } catch (error) {
       console.error('Error signing in with Google', error);
     }

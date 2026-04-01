@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Fragment } from 'react';
 import { collection, query, orderBy, where, doc, setDoc, arrayUnion, limit, getDocs, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { db } from './firebase';
 import { Listing, WantListing, PortfolioItem } from './types';
@@ -589,26 +589,20 @@ export const Home: React.FC = () => {
             <TrendingUp className="w-6 h-6 text-amber-500" />
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">市場行情</h2>
           </div>
-          {(() => {
-            try {
-              const sorted = [...cardPrices].sort((a, b) => b.latest_price_hkd - a.latest_price_hkd);
-              return sorted.slice(0, 5).map((card, index) => (
-                <div key={card.id} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                  <p className="font-bold">{card.card_name || card.title}</p>
-                  <p className="text-xl font-black">HK${Number(card.latest_price_hkd || 0).toLocaleString()}</p>
-                </div>
-              ));
-            } catch (e) {
-              return <p className="text-red-500">Failed to load prices</p>;
-            }
-          })()}
+          <Fragment>
+            {[...cardPrices].sort((a, b) => b.latest_price_hkd - a.latest_price_hkd).slice(0, 5).map((card, index) => (
+              <div key={card.id} className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <p className="font-bold">{card.card_name || card.title}</p>
+                <p className="text-xl font-black">HK${Number(card.latest_price_hkd || 0).toLocaleString()}</p>
+              </div>
+            ))}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {cardPrices.map((card, index) => (
-                <div 
+                <div
                   key={card.id}
                   className={`relative overflow-hidden rounded-2xl border transition-all duration-300 hover:scale-[1.02] ${
-                    index === 0 
-                      ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-amber-500/30' 
+                    index === 0
+                      ? 'bg-gradient-to-br from-amber-900/30 to-orange-900/20 border-amber-500/30'
                       : 'bg-white dark:bg-[#0d0d0d] border-gray-100 dark:border-white/10 hover:shadow-lg'
                   }`}
                 >
@@ -618,7 +612,7 @@ export const Home: React.FC = () => {
                       #1
                     </div>
                   )}
-                  
+
                   <div className="p-4">
                     {/* Card Visual */}
                     <div className={`w-full aspect-[3/4] rounded-xl mb-3 flex items-center justify-center ${
@@ -635,19 +629,19 @@ export const Home: React.FC = () => {
                          card.card_name.toLowerCase().includes('dragonite') ? '🐲' : '🎴'}
                       </span>
                     </div>
-                    
+
                     {/* Name */}
                     <h3 className="font-bold text-gray-900 dark:text-white text-xs leading-tight mb-1 line-clamp-2">
                       {card.card_name}
                     </h3>
                     <p className="text-gray-400 text-[10px] mb-2">{card.grade} · {card.source}</p>
-                    
+
                     {/* Price */}
                     <div className="border-t border-gray-100 dark:border-white/10 pt-2">
                       <p className="text-gray-500 text-[10px]">HKD</p>
                       <p className={`font-black tracking-tight leading-none ${
-                        index === 0 
-                          ? 'text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500' 
+                        index === 0
+                          ? 'text-xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500'
                           : 'text-lg text-gray-900 dark:text-white'
                       }`}>
                         ${card.latest_price_hkd.toLocaleString()}
@@ -657,7 +651,7 @@ export const Home: React.FC = () => {
                 </div>
               ))}
             </div>
-          )}
+          </Fragment>
         </div>
       )}
 
