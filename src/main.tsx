@@ -1,3 +1,5 @@
+console.log("TCG Invest Version 2.0 Starting...");
+
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
