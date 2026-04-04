@@ -18,7 +18,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({ condition, cardT
   if (isPSA10 || isPSA9 || isPSA8) {
     const grade = isPSA10 ? '10' : isPSA9 ? '9' : '8';
     return (
-      <div className={`flex items-center overflow-hidden rounded-full border border-red-500/30 shadow-[0_2px_8px_-2px_rgba(223,30,38,0.3)] h-7 sm:h-8 bg-white dark:bg-[#0d0d0d] ${className}`}>
+      <div className={`flex items-center overflow-hidden rounded-full border border-red-500/30 shadow-[0_2px_8px_-2px_rgba(223,30,38,0.3)] h-7 sm:h-8 bg-white dark:bg-[#1c1c1e] ${className}`}>
         <div className="bg-[#df1e26] px-2.5 sm:px-3 h-full flex items-center">
           <span className="text-[9px] sm:text-[11px] font-black text-white tracking-tighter leading-none">PSA</span>
         </div>
@@ -31,7 +31,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({ condition, cardT
 
   if (isBGS) {
     return (
-      <div className={`flex items-center overflow-hidden rounded-full border border-blue-500/30 shadow-[0_2px_8px_-2px_rgba(30,58,138,0.3)] h-7 sm:h-8 bg-white dark:bg-[#0d0d0d] ${className}`}>
+      <div className={`flex items-center overflow-hidden rounded-full border border-blue-500/30 shadow-[0_2px_8px_-2px_rgba(30,58,138,0.3)] h-7 sm:h-8 bg-white dark:bg-[#1c1c1e] ${className}`}>
         <div className="bg-blue-900 dark:bg-blue-800 px-2.5 sm:px-3 h-full flex items-center">
           <span className="text-[9px] sm:text-[11px] font-black text-white tracking-tighter leading-none">BGS</span>
         </div>
@@ -44,7 +44,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({ condition, cardT
 
   if (isCGC) {
     return (
-      <div className={`flex items-center overflow-hidden rounded-full border border-cyan-500/30 shadow-[0_2px_8px_-2px_rgba(8,145,178,0.3)] h-7 sm:h-8 bg-white dark:bg-[#0d0d0d] ${className}`}>
+      <div className={`flex items-center overflow-hidden rounded-full border border-cyan-500/30 shadow-[0_2px_8px_-2px_rgba(8,145,178,0.3)] h-7 sm:h-8 bg-white dark:bg-[#1c1c1e] ${className}`}>
         <div className="bg-cyan-600 dark:bg-cyan-700 px-2.5 sm:px-3 h-full flex items-center">
           <span className="text-[9px] sm:text-[11px] font-black text-white tracking-tighter leading-none">CGC</span>
         </div>
@@ -58,7 +58,7 @@ export const ConditionBadge: React.FC<ConditionBadgeProps> = ({ condition, cardT
   const displayCondition = isRAW ? 'RAW卡' : (condition === 'Mint' ? '美品' : condition);
 
   return (
-    <div className={`bg-white/95 dark:bg-[#0d0d0d]/80 backdrop-blur-md px-3 py-1 sm:px-5 sm:py-2 rounded-full text-[11px] sm:text-[13px] font-black text-gray-900 dark:text-white shadow-md dark:shadow-none border border-gray-100/50 dark:border-white/10 ${className}`}>
+    <div className={`bg-gray-50 dark:bg-[#1c1c1e] px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-[11px] sm:text-xs font-bold text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 ${className}`}>
       {displayCondition}
     </div>
   );

@@ -21,7 +21,7 @@ export const TradingInsights: React.FC<TradingInsightsProps> = ({ listings }) =>
   if (data.length === 0) return null;
 
   return (
-    <div className="bg-white dark:bg-[#0d0d0d] p-6 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none">
+    <div className="bg-white dark:bg-[#1c1c1e] p-6 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none">
       <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-widest mb-6">近期上架趨勢</h3>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">

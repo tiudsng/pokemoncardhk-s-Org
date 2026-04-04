@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, GoogleAuthProvider } from './firebase';
+import { auth, db, googleProvider } from './firebase';
+import { handleFirestoreError, OperationType } from './lib/firestoreUtils';
 
 // Extend the user type to support our guest user
 export interface AppUser {
@@ -50,63 +51,89 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        let userData = userSnap.data();
-        
-        if (!userSnap.exists()) {
-          userData = {
-            uid: currentUser.uid,
-            email: currentUser.email || '',
-            displayName: currentUser.displayName || '匿名用戶',
-            photoURL: currentUser.photoURL || '',
-            createdAt: serverTimestamp(),
-            rating: 5,
-            totalReviews: 0,
-            completedTransactions: 0,
-          };
-          await setDoc(userRef, userData);
-        }
+      try {
+        if (currentUser) {
+          const userRef = doc(db, 'users', currentUser.uid);
+          let userSnap;
+          try {
+            userSnap = await getDoc(userRef);
+          } catch (error) {
+            handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
+          }
+          
+          let userData = userSnap?.data();
+          
+          if (!userSnap?.exists()) {
+            userData = {
+              uid: currentUser.uid,
+              email: currentUser.email || '',
+              displayName: currentUser.displayName || '匿名用戶',
+              photoURL: currentUser.photoURL || '',
+              createdAt: serverTimestamp(),
+              rating: 5,
+              totalReviews: 0,
+              completedTransactions: 0,
+              role: currentUser.email === 'appleyes516@gmail.com' ? 'admin' : 'user',
+            };
+            try {
+              await setDoc(userRef, userData);
+            } catch (error) {
+              handleFirestoreError(error, OperationType.WRITE, `users/${currentUser.uid}`);
+            }
+          }
 
-        const appUser: AppUser = {
-          uid: currentUser.uid,
-          email: currentUser.email,
-          displayName: currentUser.displayName || '匿名用戶',
-          photoURL: currentUser.photoURL,
-          rating: userData?.rating || 5,
-          totalReviews: userData?.totalReviews || 0,
-          completedTransactions: userData?.completedTransactions || 0,
-          role: userData?.role || 'user',
-        };
-        setUser(appUser);
-      } else {
-        // If not logged in via Firebase, use a persistent guest user
-        const guestUser = getGuestUser();
-        setUser(guestUser);
-        
-        // Ensure guest user exists in Firestore
-        const userRef = doc(db, 'users', guestUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            uid: guestUser.uid,
-            email: '',
-            displayName: guestUser.displayName,
-            photoURL: guestUser.photoURL,
-            createdAt: serverTimestamp(),
-            isGuest: true
-          });
+          const appUser: AppUser = {
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName || '匿名用戶',
+            photoURL: currentUser.photoURL,
+            rating: userData?.rating || 5,
+            totalReviews: userData?.totalReviews || 0,
+            completedTransactions: userData?.completedTransactions || 0,
+            role: currentUser.email === 'appleyes516@gmail.com' ? 'admin' : (userData?.role || 'user'),
+          };
+          setUser(appUser);
+        } else {
+          // If not logged in via Firebase, use a persistent guest user
+          const guestUser = getGuestUser();
+          setUser(guestUser);
+          
+          // Ensure guest user exists in Firestore
+          const userRef = doc(db, 'users', guestUser.uid);
+          let userSnap;
+          try {
+            userSnap = await getDoc(userRef);
+          } catch (error) {
+            handleFirestoreError(error, OperationType.GET, `users/${guestUser.uid}`);
+          }
+          
+          if (!userSnap?.exists()) {
+            try {
+              await setDoc(userRef, {
+                uid: guestUser.uid,
+                email: '',
+                displayName: guestUser.displayName,
+                photoURL: guestUser.photoURL,
+                createdAt: serverTimestamp(),
+                isGuest: true
+              });
+            } catch (error) {
+              handleFirestoreError(error, OperationType.WRITE, `users/${guestUser.uid}`);
+            }
+          }
         }
+      } catch (error) {
+        console.error('Auth state change error:', error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, GoogleAuthProvider);
+      await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error('Error signing in with Google', error);
     }

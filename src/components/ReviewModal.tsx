@@ -102,7 +102,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative bg-white dark:bg-[#0d0d0d] rounded-[2rem] shadow-2xl dark:shadow-none border border-gray-100 dark:border-white/10 w-full max-w-md overflow-hidden"
+            className="relative bg-white dark:bg-[#1c1c1e] rounded-[2rem] shadow-2xl dark:shadow-none border border-gray-100 dark:border-white/10 w-full max-w-md overflow-hidden"
           >
             <div className="p-8">
               <button

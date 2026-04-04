@@ -1,12 +1,905 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TCG INVEST</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TCG INVEST | 專業投資監控平台</title>
+    
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --apple-bg: #050505;
+            --apple-card: rgba(28, 28, 30, 0.7);
+            --apple-card-border: rgba(255, 255, 255, 0.08);
+            --apple-gold: #d4af37;
+            --apple-gold-gradient: linear-gradient(135deg, #f9d423 0%, #ff4e50 100%);
+            --apple-green: #32d74b;
+            --apple-red: #ff453a;
+            --nav-bg: rgba(10, 10, 10, 0.85);
+            
+            /* Fluid Spacing */
+            --space-xs: clamp(0.5rem, 1vw, 0.75rem);
+            --space-sm: clamp(0.75rem, 1.5vw, 1rem);
+            --space-md: clamp(1rem, 2vw, 1.5rem);
+            --space-lg: clamp(1.5rem, 3vw, 2.5rem);
+            --space-xl: clamp(2rem, 5vw, 4rem);
+        }
+
+        body {
+            background-color: var(--apple-bg);
+            color: #fff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+            padding-top: clamp(80px, 10vh, 100px);
+            padding-bottom: 40px;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* 🏆 頂級響應式導覽列 */
+        .glass-nav {
+            background-color: var(--nav-bg);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-bottom: 1px solid var(--apple-card-border);
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1000;
+            height: clamp(64px, 8vh, 80px);
+        }
+
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-md);
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            border-radius: 16px;
+            color: #888;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            position: relative;
+        }
+        .nav-btn i { width: 20px; height: 20px; stroke-width: 2.5px; }
+        .nav-btn span { font-size: 10px; font-weight: 800; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .nav-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); transform: translateY(-2px); }
+        .nav-btn.active { color: #fff; }
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            width: 12px;
+            height: 3px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        @media (min-width: 1024px) {
+            .nav-btn { flex-direction: row; gap: 10px; padding: 10px 20px; }
+            .nav-btn span { font-size: 14px; margin-top: 0; }
+        }
+
+        /* 🏆 標籤切換 - 高級感 */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: var(--space-md) 0;
+            overflow-x: auto;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .tab-pill {
+            background: var(--apple-card);
+            border: 1px solid var(--apple-card-border);
+            border-radius: 100px;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #999;
+            white-space: nowrap;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+        .tab-pill:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .tab-pill.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 10px 20px rgba(255,255,255,0.2); }
+
+        /* 🏆 排行榜卡片 - NO.1 終極王者位 (垂直海報風) */
+        .card-no1 {
+            background: #111;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column; /* 手機版垂直 */
+            border: 1px solid rgba(212,175,55,0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 20px rgba(212,175,55,0.1);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* 🖥️ 桌面版 NO.1 恢復橫向 */
+        @media (min-width: 1024px) {
+            .card-no1 {
+                flex-direction: row;
+                padding: 64px;
+                gap: 60px;
+                border-radius: 48px;
+            }
+        }
+
+        .no1-rank-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 32px;
+            font-weight: 900;
+            color: #f9d423;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        .card-img-wrapper {
+            width: 100%;
+            position: relative;
+        }
+        @media (min-width: 1024px) {
+            .card-img-wrapper { width: 320px; }
+        }
+
+        .card-img {
+            width: 100%;
+            display: block;
+            transition: all 0.8s ease;
+        }
+        @media (min-width: 1024px) {
+            .card-img { border-radius: 24px; box-shadow: 0 40px 80px rgba(0,0,0,0.8); }
+        }
+
+        .card-info-no1 {
+            padding: 20px;
+            background: linear-gradient(to bottom, #1a1a1a, #000);
+        }
+        @media (min-width: 1024px) {
+            .card-info-no1 { background: transparent; padding: 0; flex-grow: 1; }
+        }
+
+        .card-rank-text { font-size: 24px; font-weight: 950; line-height: 1; margin-bottom: 4px; color: #fff; }
+        @media (min-width: 1024px) {
+            .card-rank-text { font-size: 80px; margin-bottom: 20px; letter-spacing: -0.05em; }
+        }
+
+        .card-name-text { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1.2; }
+        @media (min-width: 1024px) {
+            .card-name-text { font-size: 32px; margin-bottom: 12px; }
+        }
+
+        .card-price-gold { font-size: 28px; font-weight: 900; color: #d4af37; letter-spacing: -0.02em; }
+        @media (min-width: 1024px) {
+            .card-price-gold { font-size: 48px; }
+        }
+
+        .card-footer-text { font-size: 10px; color: #555; font-weight: 700; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; }
+
+        /* 🏆 NO.2 & NO.3 - 垂直並排樣式 */
+        .card-small {
+            background: #1c1c1e;
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            gap: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.4s ease;
+        }
+        @media (min-width: 1024px) {
+            .card-small { flex-direction: row; padding: 24px; border-radius: 32px; gap: 24px; }
+        }
+
+        .card-small-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .card-rank-small { font-size: 18px; font-weight: 900; color: #888; }
+        
+        .card-img-small {
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        @media (min-width: 1024px) {
+            .card-img-small { width: 100px; height: 140px; border-radius: 12px; }
+        }
+        
+        .card-info-small { width: 100%; }
+        .card-name-small { font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-price-small { font-size: 12px; font-weight: 700; color: #888; margin-top: 2px; }
+        .card-price-small .price-val { color: #fff; }
+        .card-price-small .change-val { color: var(--apple-green); }
+        .card-price-small .change-val.down { color: var(--apple-red); }
+        
+        .card-rank-small { font-size: 16px; font-weight: 900; color: #fff; }
+        .card-name-small { font-size: 10px; font-weight: 600; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-price-small { font-size: 11px; font-weight: 800; color: var(--apple-green); margin-top: 2px; }
+
+        /* 🏆 列表優化 */
+        .rank-item {
+            background: var(--apple-card);
+            border-radius: 20px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--apple-card-border);
+            transition: all 0.3s ease;
+        }
+        .rank-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+
+        /* 平台標籤 */
+        .platform-tag {
+            background: #000;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.15);
+            letter-spacing: 0.05em;
+        }
+
+        /* 頁面視圖 */
+        .view-section { display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view-section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+
+    <!-- 📱 響應式導覽列 -->
+    <nav class="glass-nav">
+        <div class="nav-container">
+            <div class="flex items-center gap-2 shrink-0 cursor-pointer" onclick="switchView('home')">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i data-lucide="layers" class="text-white w-6 h-6"></i>
+                </div>
+                <div class="hidden lg:block leading-none">
+                    <h1 class="text-base font-black tracking-tighter italic uppercase">TCG</h1>
+                    <h1 class="text-base font-black tracking-tighter italic uppercase">INVEST</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1 md:gap-4 overflow-x-auto no-scrollbar">
+                <div onclick="switchView('home')" class="nav-btn active" data-view="home"><i data-lucide="home"></i><span>首頁</span></div>
+                <div onclick="switchView('sell')" class="nav-btn" data-view="sell"><i data-lucide="shopping-bag"></i><span>賣卡</span></div>
+                <div onclick="switchView('buy')" class="nav-btn" data-view="buy"><i data-lucide="plus-square"></i><span>徵卡</span></div>
+                <div onclick="switchView('portfolio')" class="nav-btn" data-view="portfolio"><i data-lucide="pie-chart"></i><span>投資</span></div>
+                <div onclick="switchView('admin')" class="nav-btn" data-view="admin"><i data-lucide="shield"></i><span>管理</span></div>
+            </div>
+
+            <!-- 🎤 語音搜尋框 (桌面版更寬) -->
+            <div class="hidden md:flex items-center bg-white/5 border border-white/10 rounded-2xl px-3 py-2 gap-2 w-48 lg:w-64 focus-within:border-blue-500/50 transition-all">
+                <i data-lucide="search" class="w-4 h-4 text-gray-500"></i>
+                <input id="global-search" type="text" placeholder="搜尋卡片..." class="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-gray-600">
+                <button id="voice-btn" class="text-gray-500 hover:text-blue-500 transition-colors">
+                    <i data-lucide="mic" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 rounded-full bg-gray-800 border border-white/10 overflow-hidden cursor-pointer">
+                    <img id="user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="avatar">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 🏆 主內容區 (響應式寬度) -->
+    <main class="max-w-7xl mx-auto p-4 md:p-8">
+        
+        <div id="view-home" class="view-section active space-y-8">
+            
+            <div class="tab-container no-scrollbar" id="main-tabs">
+                <div class="tab-pill active" data-type="active">🔥 十大活躍</div>
+                <div class="tab-pill" data-type="gainers">📈 十大爆升</div>
+                <div class="tab-pill" data-type="losers">📉 十大爆跌</div>
+            </div>
+
+            <div class="text-center">
+                <h2 class="text-2xl md:text-4xl font-black tracking-tight" id="leaderboard-title-text">[ 🏆 價格磅排行榜 ]</h2>
+                <p class="text-gray-500 text-sm mt-2">頭三名顯示 (Top 3 Focus)</p>
+            </div>
+
+            <!-- 🏆 響應式佈局核心 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+                
+                <!-- 左側：NO.1 (佔 7 欄) -->
+                <div class="lg:col-span-7" id="no1-slot"></div>
+                
+                <!-- 右側：NO.2 & NO.3 (手機並排，桌面垂直) -->
+                <div class="lg:col-span-5 grid grid-cols-2 lg:grid-cols-1 gap-4" id="no23-slot"></div>
+            </div>
+
+            <!-- 📊 展開式排行榜 (NO.4-10) -->
+            <div class="pt-8">
+                <button id="toggle-rankings" class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 flex items-center justify-center gap-3 hover:bg-white/10 transition-all group">
+                    <span class="text-sm font-black tracking-widest uppercase opacity-60 group-hover:opacity-100">查看完整排行榜 (NO.4 - NO.10)</span>
+                    <i data-lucide="chevron-down" class="w-5 h-5 opacity-40 group-hover:opacity-100 transition-transform" id="toggle-icon"></i>
+                </button>
+                
+                <div id="rank-list-container" class="hidden mt-6 space-y-4">
+                    <div id="rank-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <!-- 📰 資訊與趨勢區塊 (還原圖片設計) -->
+            <div class="pt-12 space-y-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-black tracking-tight">情報與趨勢分析</h3>
+                    <span class="text-xs font-bold text-blue-500 cursor-pointer hover:underline">查看全部</span>
+                </div>
+
+                <div id="articles-container" class="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    <!-- 由 JS 動態填充 -->
+                    <div class="col-span-full py-20 text-center text-gray-500 font-bold animate-pulse">正在獲取最新情報...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 卡片詳情頁 (Detail) -->
+        <div id="view-detail" class="view-section space-y-8 pb-20">
+            <div class="flex items-center gap-4">
+                <button onclick="switchView('home')" class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-xl font-black italic uppercase tracking-widest">Card Details</h2>
+            </div>
+
+            <div id="detail-content" class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <!-- 由 JS 動態填充 -->
+            </div>
+        </div>
+
+        <!-- 其他視圖 -->
+        <div id="view-sell" class="view-section space-y-6"><h2 class="text-3xl font-black italic">賣卡區</h2><div class="bg-white/5 rounded-3xl p-20 text-center text-gray-500">功能開發中...</div></div>
+        <div id="view-portfolio" class="view-section space-y-6"><h2 class="text-3xl font-black italic">投資組合</h2><div class="bg-white/5 rounded-3xl p-20 text-center text-gray-500">功能開發中...</div></div>
+        <!-- 5. 管理員中心 (Admin) -->
+        <div id="view-admin" class="view-section space-y-8 pb-20">
+            <div class="flex items-center justify-between">
+                <h2 class="text-3xl font-black italic uppercase tracking-tighter">數據管理中心</h2>
+                <div class="px-4 py-2 bg-blue-600/20 border border-blue-500/30 rounded-full text-[10px] font-black text-blue-500 uppercase tracking-widest">Admin Access</div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 更新價格 -->
+                <div class="bg-white/5 p-8 rounded-[2.5rem] border border-white/10 space-y-6 hover:bg-white/[0.07] transition-all">
+                    <h3 class="text-xl font-black flex items-center gap-3">
+                        <div class="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
+                            <i data-lucide="trending-up" class="text-green-500 w-6 h-6"></i>
+                        </div>
+                        更新卡片價格
+                    </h3>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Update market data for the leaderboard</p>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Card Name</label>
+                            <input type="text" id="admin-card-name" placeholder="如: 噴火龍 ex SAR" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none text-sm font-bold">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Price (HKD)</label>
+                                <input type="number" id="admin-card-price" placeholder="12000" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none text-sm font-bold">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Change %</label>
+                                <input type="text" id="admin-card-change" placeholder="+15.4" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none text-sm font-bold">
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Image URL</label>
+                            <input type="text" id="admin-card-url" placeholder="https://..." class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none text-sm font-bold">
+                        </div>
+                        <button onclick="adminUpdatePrice()" class="w-full bg-blue-600 hover:bg-blue-500 py-5 rounded-2xl font-black transition-all shadow-lg shadow-blue-600/20 active:scale-95">發佈價格更新</button>
+                    </div>
+                </div>
+
+                <!-- 發佈文章 -->
+                <div class="bg-white/5 p-8 rounded-[2.5rem] border border-white/10 space-y-6 hover:bg-white/[0.07] transition-all">
+                    <h3 class="text-xl font-black flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                            <i data-lucide="file-text" class="text-blue-500 w-6 h-6"></i>
+                        </div>
+                        發佈趨勢文章
+                    </h3>
+                    <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Share insights and market analysis</p>
+                    <div class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Article Title</label>
+                            <input type="text" id="admin-article-title" placeholder="文章標題" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Cover Image URL</label>
+                            <input type="text" id="admin-article-img" placeholder="封面圖片連結" class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none text-sm font-bold">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black text-gray-500 uppercase ml-2">Content</label>
+                            <textarea id="admin-article-content" placeholder="文章內容..." class="w-full bg-black/40 border border-white/10 rounded-2xl p-4 focus:border-blue-500 outline-none h-32 text-sm font-bold"></textarea>
+                        </div>
+                        <button onclick="adminPostArticle()" class="w-full bg-white text-black hover:bg-gray-200 py-5 rounded-2xl font-black transition-all active:scale-95">發佈趨勢文章</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="py-10 text-center opacity-20 text-[9px] font-bold tracking-widest uppercase">
+        © 2026 TCG INVEST NET | AI POWERED BY OPENCLAW
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, initializeFirestore, collection, query, orderBy, limit, onSnapshot, doc, setDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDSwhKXm7KqaHVO2kb2PQ6qmarySPcZyJ0", 
+            authDomain: "gen-lang-client-0326385388.firebaseapp.com", 
+            projectId: "gen-lang-client-0326385388", 
+            storageBucket: "gen-lang-client-0326385388.firebasestorage.app", 
+            messagingSenderId: "122336191579", 
+            appId: "1:122336191579:web:2de07c0acb51b8b24c8b7e",
+            firestoreDatabaseId: "ai-studio-dac23e7c-cc41-4b77-8dea-7e8421e03c6a"
+        };
+        // 使用從 config 中讀取的正確資料庫 ID
+        const app = initializeApp(firebaseConfig);
+        const db = initializeFirestore(app, {
+            experimentalForceLongPolling: true
+        }, firebaseConfig.firestoreDatabaseId);
+        const auth = getAuth(app);
+
+        let currentLeaderboardData = [];
+
+        window.switchView = (viewId) => {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            const targetView = document.getElementById(`view-${viewId}`);
+            if (targetView) targetView.classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-view="${viewId}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // 🃏 顯示卡片詳情
+        window.showCardDetail = (card) => {
+            const detailContent = document.getElementById('detail-content');
+            const img = card.url || card.image_url || card.imageUrl || DEFAULT_IMG;
+            
+            detailContent.innerHTML = `
+                <div class="flex justify-center items-start">
+                    <div class="relative group max-w-sm w-full">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <img src="${img}" class="relative w-full rounded-2xl shadow-2xl transform transition duration-500 hover:scale-105" alt="${card.card_name}" referrerPolicy="no-referrer" onerror="this.src='${DEFAULT_IMG}'">
+                    </div>
+                </div>
+                
+                <div class="space-y-8">
+                    <div class="space-y-2">
+                        <div class="flex gap-2 mb-4">
+                            <span class="platform-tag">PSA 10</span>
+                            <span class="platform-tag">Mint Condition</span>
+                        </div>
+                        <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">${cleanText(card.card_name)}</h1>
+                        <p class="text-gray-500 font-bold uppercase tracking-widest text-sm">Series: Scarlet & Violet | Set: 151</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
+                            <p class="text-gray-500 text-xs font-bold uppercase mb-2">Current Price</p>
+                            <p class="text-3xl font-black text-[#d4af37]">${formatHKD(card.latest_price_hkd)}</p>
+                        </div>
+                        <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
+                            <p class="text-gray-500 text-xs font-bold uppercase mb-2">24h Change</p>
+                            <p class="text-3xl font-black ${parseFloat(card.change_percent) >= 0 ? 'text-green-500' : 'text-red-500'}">
+                                ${parseFloat(card.change_percent) >= 0 ? '+' : ''}${card.change_percent || '0.0'}%
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/5 p-8 rounded-[2.5rem] border border-white/5 space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-black text-lg">Market Trend (7D)</h3>
+                            <div class="flex gap-2">
+                                <div class="w-3 h-3 rounded-full bg-blue-500"></div>
+                                <span class="text-[10px] font-bold opacity-50 uppercase">Price History</span>
+                            </div>
+                        </div>
+                        <!-- 模擬趨勢圖 -->
+                        <div class="h-40 flex items-end gap-2 px-2">
+                            ${[40, 60, 45, 80, 70, 90, 100].map(h => `
+                                <div class="flex-1 bg-gradient-to-t from-blue-600/40 to-blue-400 rounded-t-lg transition-all duration-1000" style="height: ${h}%"></div>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold text-gray-600 uppercase px-2">
+                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-95">立即購買</button>
+                        <button class="w-16 h-16 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center transition-all border border-white/10">
+                            <i data-lucide="heart" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            switchView('detail');
+            lucide.createIcons();
+        };
+
+        const formatHKD = (val) => new Intl.NumberFormat('zh-HK', { style: 'currency', currency: 'HKD', minimumFractionDigits: 0 }).format(val || 0);
+        const cleanText = (text) => text ? text.replace(/\\xe2\\x80\\x9c/g, '“').replace(/\\xe2\\x80\\x9d/g, '”').replace(/\\xe2\\x80\\x99/g, "’").replace(/\\/g, "").trim() : "";
+
+        // 📊 排行榜摺疊邏輯
+        const toggleBtn = document.getElementById('toggle-rankings');
+        const rankContainer = document.getElementById('rank-list-container');
+        const toggleIcon = document.getElementById('toggle-icon');
+
+        toggleBtn.onclick = () => {
+            const isHidden = rankContainer.classList.contains('hidden');
+            if (isHidden) {
+                rankContainer.classList.remove('hidden');
+                toggleIcon.style.transform = 'rotate(180deg)';
+                toggleBtn.querySelector('span').innerText = "收起排行榜";
+            } else {
+                rankContainer.classList.add('hidden');
+                toggleIcon.style.transform = 'rotate(0deg)';
+                toggleBtn.querySelector('span').innerText = "查看完整排行榜 (NO.4 - NO.10)";
+            }
+        };
+
+        // 🎤 語音轉文字 (Speech to Text) 邏輯
+        const voiceBtn = document.getElementById('voice-btn');
+        const searchInput = document.getElementById('global-search');
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-HK'; 
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            voiceBtn.addEventListener('click', () => {
+                try {
+                    recognition.start();
+                    voiceBtn.classList.add('text-red-500', 'animate-pulse');
+                    searchInput.placeholder = "正在聽你說話...";
+                } catch (e) {
+                    console.log("Recognition already started or error:", e);
+                }
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                searchInput.value = transcript;
+                searchInput.placeholder = "搜尋卡片...";
+                // 觸發搜尋過濾
+                handleSearch(transcript);
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('text-red-500', 'animate-pulse');
+                if (searchInput.placeholder === "正在聽你說話...") {
+                    searchInput.placeholder = "搜尋卡片...";
+                }
+            };
+
+            recognition.onerror = (event) => {
+                voiceBtn.classList.remove('text-red-500', 'animate-pulse');
+                searchInput.placeholder = "搜尋卡片...";
+                
+                if (event.error === 'not-allowed') {
+                    alert("⚠️ 麥克風權限被阻擋。\n\n請點擊預覽窗右上角的「在新分頁開啟」圖標，在獨立分頁中即可正常使用語音功能！");
+                } else {
+                    console.error("STT Error:", event.error);
+                }
+            };
+        }
+
+        // 🔍 搜尋過濾邏輯
+        window.handleSearch = (keyword) => {
+            const cards = document.querySelectorAll('#rank-list > div, #no1-slot, #no23-slot > div');
+            const lowerKey = keyword.toLowerCase();
+            
+            cards.forEach(card => {
+                const name = card.innerText.toLowerCase();
+                if (name.includes(lowerKey)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        // 監聽手動輸入搜尋
+        searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+
+        // 預設範例數據 (當資料庫為空或圖片無效時顯示，確保「圖中的圖片」能出現)
+        const SAMPLE_DATA = [
+            {
+                card_name: "MEGA Charizard X ex SAR [M2 110/080]",
+                latest_price_hkd: 10828,
+                change_percent: "15.4",
+                url: "https://limitlesstcg.s3.us-central-1.amazonaws.com/pokemon/sv4a/sv4a-349.png"
+            },
+            {
+                card_name: "Giratina V SA",
+                latest_price_hkd: 8950,
+                change_percent: "12.1",
+                url: "https://limitlesstcg.s3.us-central-1.amazonaws.com/pokemon/swsh11/swsh11-186.png"
+            },
+            {
+                card_name: "Umbreon VMAX SA",
+                latest_price_hkd: 13500,
+                change_percent: "10.7",
+                url: "https://limitlesstcg.s3.us-central-1.amazonaws.com/pokemon/swsh7/swsh7-215.png"
+            }
+        ];
+
+        const DEFAULT_IMG = "https://tcg.pokemon.com/assets/img/global/tcg-card-back-2x.png";
+
+        // 監聽排行榜標籤切換
+        const mainTabs = document.getElementById('main-tabs');
+        const titleText = document.getElementById('leaderboard-title-text');
+        let currentTab = 'active';
+        let unsubscribe = null;
+
+        const setupLeaderboardListener = (type) => {
+            if (unsubscribe) unsubscribe();
+            
+            let q;
+            if (type === 'gainers') {
+                titleText.innerText = "[ 📈 十大爆升排行榜 ]";
+                q = query(collection(db, "card_prices"), orderBy("change_percent", "desc"), limit(10));
+            } else if (type === 'losers') {
+                titleText.innerText = "[ 📉 十大爆跌排行榜 ]";
+                q = query(collection(db, "card_prices"), orderBy("change_percent", "asc"), limit(10));
+            } else {
+                titleText.innerText = "[ 🔥 十大活躍排行榜 ]";
+                q = query(collection(db, "card_prices"), orderBy("latest_price_hkd", "desc"), limit(10));
+            }
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (data.length === 0) data = SAMPLE_DATA;
+                renderLeaderboard(data);
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                renderLeaderboard(SAMPLE_DATA);
+            });
+        };
+
+        mainTabs.querySelectorAll('.tab-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                mainTabs.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                currentTab = pill.dataset.type;
+                setupLeaderboardListener(currentTab);
+            });
+        });
+
+        // 初始啟動
+        setupLeaderboardListener('active');
+
+        // 📰 監聽文章
+        onSnapshot(query(collection(db, "articles"), orderBy("createdAt", "desc"), limit(6)), (snapshot) => {
+            const container = document.getElementById('articles-container');
+            let articles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            if (articles.length === 0) {
+                // 預設範例文章
+                articles = [
+                    { title: "新卡包：吉利雅 (Clefairy) 預測價值", imageUrl: "https://picsum.photos/seed/clefairy/600/600", type: "square" },
+                    { title: "卡市趨勢分析：噴火龍", imageUrl: "https://picsum.photos/seed/charizard-trend/600/600", type: "square" },
+                    { title: "收藏家聖杯：為什麼初版噴火龍能賣出天價？", imageUrl: "https://picsum.photos/seed/grail/600/600", type: "long" }
+                ];
+            }
+
+            container.innerHTML = articles.map((art, i) => {
+                const isLong = art.type === 'long' || i === 2;
+                if (isLong) {
+                    return `
+                        <div class="col-span-2 lg:col-span-1 bg-[#1c1c1e] rounded-[2rem] p-6 md:p-8 border border-white/5 hover:border-white/20 transition-all flex items-center gap-6 group cursor-pointer">
+                            <div class="w-16 h-16 md:w-24 md:h-24 bg-blue-600/20 rounded-2xl flex items-center justify-center shrink-0 border border-blue-500/30">
+                                <i data-lucide="help-circle" class="text-blue-500 w-8 h-8 md:w-12 md:h-12"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm md:text-lg font-black leading-tight">${art.title}</h4>
+                                <p class="text-[10px] md:text-xs text-gray-500 font-bold mt-2 uppercase tracking-widest">Deep Dive Analysis</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="bg-[#1c1c1e] rounded-[2rem] overflow-hidden border border-white/5 hover:border-white/20 transition-all group cursor-pointer">
+                            <div class="aspect-square overflow-hidden">
+                                <img src="${art.imageUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="${art.title}">
+                            </div>
+                            <div class="p-4 md:p-6">
+                                <h4 class="text-sm md:text-lg font-black leading-tight">${art.title}</h4>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+            lucide.createIcons();
+        });
+
+        // 🛠️ 管理員功能
+        window.adminUpdatePrice = async () => {
+            const name = document.getElementById('admin-card-name').value;
+            const price = parseFloat(document.getElementById('admin-card-price').value);
+            const change = document.getElementById('admin-card-change').value;
+            const url = document.getElementById('admin-card-url').value;
+
+            if (!name || isNaN(price) || !change || !url) return alert("請填寫完整資訊");
+
+            try {
+                const cardId = name.toLowerCase().replace(/\s+/g, '_');
+                await setDoc(doc(db, "card_prices", cardId), {
+                    card_name: name,
+                    latest_price_hkd: price,
+                    change_percent: change,
+                    url: url,
+                    updatedAt: serverTimestamp()
+                });
+                alert("✅ 價格更新成功！");
+                document.querySelectorAll('#view-admin input').forEach(i => i.value = '');
+            } catch (e) {
+                console.error(e);
+                alert("❌ 更新失敗: " + e.message);
+            }
+        };
+
+        window.adminPostArticle = async () => {
+            const title = document.getElementById('admin-article-title').value;
+            const img = document.getElementById('admin-article-img').value;
+            const content = document.getElementById('admin-article-content').value;
+
+            if (!title || !img || !content) return alert("請填寫完整資訊");
+
+            try {
+                await addDoc(collection(db, "articles"), {
+                    title,
+                    imageUrl: img,
+                    content,
+                    createdAt: serverTimestamp()
+                });
+                alert("✅ 文章發佈成功！");
+                document.querySelectorAll('#view-admin input, #view-admin textarea').forEach(i => i.value = '');
+            } catch (e) {
+                console.error(e);
+                alert("❌ 發佈失敗: " + e.message);
+            }
+        };
+
+        function renderLeaderboard(data) {
+            currentLeaderboardData = data;
+            const no1Slot = document.getElementById('no1-slot');
+            const no23Slot = document.getElementById('no23-slot');
+            const rankList = document.getElementById('rank-list');
+
+            const getImg = (c) => c.url || c.image_url || c.imageUrl || DEFAULT_IMG;
+
+            // NO.1 渲染
+            const c1 = data[0];
+            no1Slot.innerHTML = `
+                <div class="card-no1 cursor-pointer hover:scale-[1.01] transition-transform" onclick="showCardDetailByIndex(0)">
+                    <div class="no1-rank-tag">NO.1</div>
+                    <div class="card-img-wrapper">
+                        <img src="${getImg(c1)}" class="card-img" alt="${c1.card_name}" referrerPolicy="no-referrer" onerror="this.src='${DEFAULT_IMG}'">
+                    </div>
+                    <div class="card-info-no1">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="card-name-text">${cleanText(c1.card_name)}</h4>
+                            <div class="flex gap-1 shrink-0">
+                                <span class="platform-tag">ebay</span>
+                                <span class="platform-tag">OPENCLAW</span>
+                            </div>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <div class="card-price-gold">${formatHKD(c1.latest_price_hkd)}</div>
+                            <div class="text-green-500 font-black text-sm mb-1">
+                                ↗${c1.change_percent || '0.0'}% <span class="text-[10px] opacity-50">(7D)</span>
+                            </div>
+                        </div>
+                        <div class="card-footer-text">
+                            由 AI 和 OpenClaw 技術驅動 - 價格實時排行榜
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // NO.2 & NO.3 渲染
+            let no23Html = "";
+            [data[1], data[2]].forEach((c, i) => {
+                if (!c) return;
+                const isDown = parseFloat(c.change_percent) < 0;
+                no23Html += `
+                    <div class="card-small cursor-pointer hover:bg-white/5 transition-all" onclick="showCardDetailByIndex(${i+1})">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="card-rank-small">NO.${i+2}</span>
+                            <span class="platform-tag" style="font-size:6px; padding:2px 4px">SNKR DUNK</span>
+                        </div>
+                        <div class="card-img-small mb-3">
+                            <img src="${getImg(c)}" class="w-full h-full object-cover" referrerPolicy="no-referrer" onerror="this.src='${DEFAULT_IMG}'">
+                        </div>
+                        <div class="card-info-small">
+                            <p class="card-name-small mb-1">${cleanText(c.card_name)}</p>
+                            <p class="card-price-small">
+                                <span class="price-val">${formatHKD(c.latest_price_hkd)}</span>
+                                <span class="mx-1 opacity-30">/</span>
+                                <span class="change-val ${isDown ? 'down' : ''}">${isDown ? '' : '+'}${c.change_percent || '0.0'}%</span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+            });
+            no23Slot.innerHTML = no23Html;
+
+            // NO.4+ 渲染
+            let listHtml = "";
+            data.slice(3).forEach((c, i) => {
+                listHtml += `
+                    <div class="rank-item cursor-pointer hover:bg-white/5 transition-all" onclick="showCardDetailByIndex(${i+3})">
+                        <div class="flex items-center gap-4">
+                            <span class="text-xs font-black opacity-30 w-6">${i+4}</span>
+                            <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center overflow-hidden">
+                                <img src="${getImg(c)}" class="w-full h-full object-contain" referrerPolicy="no-referrer" onerror="this.src='${DEFAULT_IMG}'">
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold truncate w-32 md:w-40">${cleanText(c.card_name)}</p>
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Trending Now</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-base font-black text-[#d4af37]">${formatHKD(c.latest_price_hkd)}</p>
+                            <p class="text-[10px] font-bold text-green-500">+${c.change_percent || '0.0'}%</p>
+                        </div>
+                    </div>
+                `;
+            });
+            rankList.innerHTML = listHtml;
+        }
+
+        window.showCardDetailByIndex = (index) => {
+            const card = currentLeaderboardData[index];
+            if (card) {
+                showCardDetail(card);
+                switchView('detail');
+            }
+        };
+    </script>
+</body>
 </html>

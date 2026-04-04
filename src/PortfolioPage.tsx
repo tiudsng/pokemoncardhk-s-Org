@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { useAuth } from './AuthContext';
 import { PortfolioItem } from './types';
@@ -7,6 +7,7 @@ import { motion } from 'motion/react';
 import { Loader2, TrendingUp, Eye, BarChart2, Calculator, Edit3, Send, ChevronUp, ChevronDown, MoreHorizontal, Briefcase, PlusCircle, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { EditPortfolioModal } from './components/EditPortfolioModal';
+import { AddPortfolioModal } from './components/AddPortfolioModal';
 
 enum OperationType {
   CREATE = 'create',
@@ -60,9 +61,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 }
 
 interface ExtendedPortfolioItem extends PortfolioItem {
-  set: string;
   rarity: string;
-  number: string;
   condition: string;
   finish: string;
   qty: number;
@@ -77,6 +76,7 @@ export const PortfolioPage: React.FC = () => {
   const [items, setItems] = useState<ExtendedPortfolioItem[]>([]);
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const fetchPortfolio = async () => {
     if (!user || user.isGuest) {
@@ -95,9 +95,8 @@ export const PortfolioPage: React.FC = () => {
         // Map real items to extended items with some mock market data for display
         const extendedItems: ExtendedPortfolioItem[] = portfolioItems.map(item => ({
           ...item,
-          set: 'Pokemon TCG',
+          set: item.set || 'Pokemon TCG',
           rarity: 'Rare',
-          number: '000/000',
           condition: 'Near Mint',
           finish: 'Holofoil',
           qty: 1,
@@ -130,7 +129,19 @@ export const PortfolioPage: React.FC = () => {
     if (!user) return;
     try {
       const portfolioRef = doc(db, 'portfolios', user.uid);
-      const newItems = items.map(item => item.id === updatedItem.id ? updatedItem : item);
+      // Strip mock fields before saving
+      const newItems = items.map(item => {
+        const baseItem: PortfolioItem = {
+          id: item.id,
+          title: item.id === updatedItem.id ? updatedItem.title : item.title,
+          purchasePrice: item.id === updatedItem.id ? updatedItem.purchasePrice : item.purchasePrice,
+          acquiredAt: item.id === updatedItem.id ? updatedItem.acquiredAt : item.acquiredAt,
+          imageUrl: item.id === updatedItem.id ? updatedItem.imageUrl : item.imageUrl,
+          cardNumber: item.id === updatedItem.id ? updatedItem.cardNumber : item.cardNumber,
+          set: item.id === updatedItem.id ? updatedItem.set : item.set
+        };
+        return baseItem;
+      });
       await updateDoc(portfolioRef, { items: newItems });
       await fetchPortfolio();
     } catch (error) {
@@ -142,8 +153,37 @@ export const PortfolioPage: React.FC = () => {
     if (!user) return;
     try {
       const portfolioRef = doc(db, 'portfolios', user.uid);
-      const newItems = items.filter(item => item.id !== itemId);
+      // Strip mock fields before saving
+      const newItems = items
+        .filter(item => item.id !== itemId)
+        .map(item => ({
+          id: item.id,
+          title: item.title,
+          purchasePrice: item.purchasePrice,
+          acquiredAt: item.acquiredAt,
+          imageUrl: item.imageUrl,
+          cardNumber: item.cardNumber,
+          set: item.set
+        }));
       await updateDoc(portfolioRef, { items: newItems });
+      await fetchPortfolio();
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `portfolios/${user.uid}`);
+    }
+  };
+
+  const handleAddItem = async (newItem: PortfolioItem) => {
+    if (!user) return;
+    try {
+      const portfolioRef = doc(db, 'portfolios', user.uid);
+      const docSnap = await getDoc(portfolioRef);
+      
+      if (docSnap.exists()) {
+        const currentItems = docSnap.data().items || [];
+        await updateDoc(portfolioRef, { items: [...currentItems, newItem] });
+      } else {
+        await setDoc(portfolioRef, { items: [newItem] });
+      }
       await fetchPortfolio();
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `portfolios/${user.uid}`);
@@ -155,7 +195,7 @@ export const PortfolioPage: React.FC = () => {
   const totalPurchasePrice = totalValue - totalProfit;
   const totalProfitPercent = totalPurchasePrice > 0 ? (totalProfit / totalPurchasePrice) * 100 : 0;
 
-  if (loading) return <div className="flex justify-center items-center h-screen bg-white dark:bg-[#050505]"><Loader2 className="animate-spin w-8 h-8 text-red-600" /></div>;
+  if (loading) return <div className="flex justify-center items-center h-screen bg-[var(--bg)]"><Loader2 className="animate-spin w-8 h-8 text-red-600 dark:text-white" /></div>;
 
   if (!user || user.isGuest) {
     return (
@@ -176,17 +216,24 @@ export const PortfolioPage: React.FC = () => {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-white dark:bg-[#050505]"
+      className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto min-h-screen bg-[var(--bg)]"
     >
       {/* Header Section */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-10 relative">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="absolute top-0 right-0 p-3 bg-red-600 text-white rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 active:scale-95 z-10"
+          title="新增卡片"
+        >
+          <PlusCircle className="w-6 h-6" />
+        </button>
         <div className="flex items-center justify-center gap-2 mb-2">
           <span className="text-gray-500 dark:text-gray-400 font-bold text-lg">Portfolio:</span>
           <span className="text-red-500 dark:text-red-400 font-bold text-lg">Main</span>
         </div>
         <div className="flex flex-col items-center justify-center gap-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-5xl font-black text-gray-900 dark:text-white">${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h1>
+            <h1 className="text-5xl font-black text-gray-900 dark:text-white">HK${(totalValue * 7.8).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</h1>
             <button className="p-2 bg-gray-100 dark:bg-white/5 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
               <Eye className="w-5 h-5" />
             </button>
@@ -194,7 +241,7 @@ export const PortfolioPage: React.FC = () => {
           {items.length > 0 && (
             <div className={`flex items-center gap-1 font-bold text-sm ${totalProfit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               {totalProfit >= 0 ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              <span>${Math.abs(totalProfit).toLocaleString(undefined, { minimumFractionDigits: 2 })} ({totalProfitPercent.toFixed(2)}%)</span>
+              <span>HK${(Math.abs(totalProfit) * 7.8).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ({totalProfitPercent.toFixed(2)}%)</span>
             </div>
           )}
         </div>
@@ -246,7 +293,7 @@ export const PortfolioPage: React.FC = () => {
             <motion.div 
               key={item.id}
               whileHover={{ y: -4 }}
-              className="bg-white dark:bg-[#0d0d0d] rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-white/5 p-3 sm:p-5 flex flex-col shadow-sm"
+              className="bg-white dark:bg-[#1c1c1e] rounded-2xl sm:rounded-3xl border border-gray-100 dark:border-white/5 p-3 sm:p-5 flex flex-col shadow-sm"
             >
               <div className="flex justify-center mb-3 sm:mb-6">
                 <div className="relative group">
@@ -255,6 +302,7 @@ export const PortfolioPage: React.FC = () => {
                     alt={item.title} 
                     className="w-full max-w-[120px] sm:w-48 h-auto object-contain drop-shadow-xl transition-transform group-hover:scale-105" 
                     referrerPolicy="no-referrer"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
                 </div>
@@ -275,7 +323,7 @@ export const PortfolioPage: React.FC = () => {
                 </div>
                 <p className="text-gray-500 dark:text-gray-400 font-bold text-[10px] sm:text-sm line-clamp-1">{item.set}</p>
                 <p className="text-gray-500 dark:text-gray-400 text-[8px] sm:text-xs mb-0.5 sm:mb-1">
-                  {item.rarity} • {item.number}
+                  {item.rarity} • {item.cardNumber || 'N/A'}
                 </p>
                 <p className="text-red-500 dark:text-red-400 font-bold text-[8px] sm:text-xs mb-2 sm:mb-4">
                   {item.condition} • {item.finish}
@@ -284,15 +332,15 @@ export const PortfolioPage: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mt-auto gap-1 sm:gap-0">
                   <div className="hidden sm:block">
                     <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Qty: {item.qty}</p>
-                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Cost: ${(item.purchasePrice || 0).toLocaleString()}</p>
+                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Cost: HK${((item.purchasePrice || 0) * 7.8).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                   </div>
                   <div className="w-full sm:text-right">
                     <div className={`flex items-center sm:justify-end gap-0.5 sm:gap-1 font-bold text-[10px] sm:text-sm ${item.changeAmount >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                       {item.changeAmount >= 0 ? <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />}
-                      <span>${item.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <span>HK${(item.currentPrice * 7.8).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                     </div>
                     <p className="text-gray-400 text-[8px] sm:text-[10px] font-bold">
-                      {item.changeAmount >= 0 ? '+' : ''}${item.changeAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ({item.changePercent.toFixed(2)}%)
+                      {item.changeAmount >= 0 ? '+' : ''}HK${(item.changeAmount * 7.8).toLocaleString(undefined, { maximumFractionDigits: 0 })} ({item.changePercent.toFixed(2)}%)
                     </p>
                   </div>
                 </div>
@@ -302,17 +350,18 @@ export const PortfolioPage: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Action Button for Mobile */}
-      <button className="fixed bottom-24 right-6 w-12 h-12 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full flex items-center justify-center shadow-lg sm:hidden">
-        <ChevronUp className="w-6 h-6" />
-      </button>
-
       <EditPortfolioModal 
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSave={handleSaveItem}
         onDelete={handleDeleteItem}
         item={editingItem}
+      />
+
+      <AddPortfolioModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddItem}
       />
     </motion.div>
   );

@@ -30,9 +30,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl dark:shadow-none border border-gray-100 dark:border-gray-700 w-full max-w-lg p-8 relative"
+          className="bg-white dark:bg-[#1c1c1e] rounded-3xl shadow-2xl dark:shadow-none border border-gray-100 dark:border-white/10 w-full max-w-lg p-8 relative"
         >
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors">
             <X className="w-6 h-6" />
           </button>
           
@@ -42,7 +42,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
           <div className="flex justify-between items-center">
             <div className="flex gap-1">
               {steps.map((_, index) => (
-                <div key={index} className={`h-2 w-2 rounded-full transition-colors ${index === currentStep ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-200 dark:bg-gray-700'}`} />
+                <div key={index} className={`h-2 w-2 rounded-full transition-colors ${index === currentStep ? 'bg-blue-600 dark:bg-blue-500' : 'bg-gray-200 dark:bg-white/10'}`} />
               ))}
             </div>
             

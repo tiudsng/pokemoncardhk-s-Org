@@ -6,11 +6,20 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+@variant dark (&:is(.dark *));
+
 :root {
-  --bg: #f8fafc;
-  --text: #0f172a;
-  --border: #e2e8f0;
+  --bg: #f5f5f7;
+  --text: #1d1d1f;
+  --border: rgba(0, 0, 0, 0.1);
   --card-bg: #ffffff;
+}
+
+.dark {
+  --bg: #000000;
+  --text: #f5f5f7;
+  --border: rgba(255, 255, 255, 0.15);
+  --card-bg: #1c1c1e;
 }
 
 body {
@@ -35,6 +44,17 @@ body {
 .animate-gradient-x {
   background-size: 200% 200%;
   animation: gradient-x 3s ease infinite;
+}
+
+/* 價格閃爍動畫 */
+@keyframes flashGreen {
+  0% { background-color: transparent; color: inherit; }
+  20% { background-color: #30d158; color: #000000; border-radius: 4px; padding: 0 4px; }
+  100% { background-color: transparent; color: inherit; }
+}
+
+.price-flash {
+  animation: flashGreen 1s ease-out;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

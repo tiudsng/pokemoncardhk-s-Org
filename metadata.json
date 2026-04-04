@@ -1,5 +1,5 @@
 {
   "name": "TCG INVEST",
   "description": "專業寶可夢卡牌交易與投資追蹤平台，提供買賣、徵卡及投資組合管理。",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["microphone"]
 }

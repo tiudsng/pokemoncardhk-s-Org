@@ -1,5 +1,0 @@
-// Temp placeholder - Market Prices section removed to fix build
-// Full Home.tsx will be restored after build passes
-export default function Home() {
-  return <div className="pt-24"><h1>TCG Invest Loading...</h1></div>;
-}

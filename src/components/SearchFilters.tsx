@@ -23,7 +23,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilter
   if (!isOpen) return null;
 
   return (
-    <div className="bg-white dark:bg-[#0d0d0d] p-6 rounded-2xl shadow-lg dark:shadow-none border border-gray-100 dark:border-white/10 mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-colors duration-300">
+    <div className="bg-white dark:bg-[#1c1c1e] p-6 rounded-2xl shadow-lg dark:shadow-none border border-gray-100 dark:border-white/10 mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 transition-colors duration-300">
       <div>
         <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">價格範圍</label>
         <div className="flex gap-2">

@@ -93,7 +93,7 @@ export const FavoritesPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen pt-16 bg-white dark:bg-[#030303] transition-colors duration-300">
+      <div className="flex justify-center items-center h-screen pt-16 bg-[var(--bg)] transition-colors duration-300">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white"></div>
       </div>
     );
@@ -112,7 +112,7 @@ export const FavoritesPage: React.FC = () => {
       </div>
 
       {favorites.length === 0 ? (
-        <div className="text-center py-24 bg-gray-50 dark:bg-[#0d0d0d] rounded-[3rem] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none">
+        <div className="text-center py-24 bg-gray-50 dark:bg-[#1c1c1e] rounded-[3rem] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none">
           <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Heart className="w-10 h-10 text-red-300 dark:text-red-400" />
           </div>
@@ -137,14 +137,14 @@ export const FavoritesPage: React.FC = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <Link to={`/listing/${listing.id}`} className="group block h-full">
-                  <div className="bg-white dark:bg-[#0d0d0d] rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 hover:shadow-xl hover:border-gray-200 dark:hover:border-white/10 transition-all duration-300 h-full flex flex-col relative">
+                  <div className="bg-white dark:bg-[#1c1c1e] rounded-3xl overflow-hidden shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 hover:shadow-xl hover:border-gray-200 dark:hover:border-white/10 transition-all duration-300 h-full flex flex-col relative">
                     <button 
                       onClick={(e) => removeFavorite((listing as any).favoriteId, e)}
                       className="absolute top-2 right-2 z-20 p-2 bg-white/80 dark:bg-black/60 backdrop-blur-md rounded-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors shadow-sm"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="aspect-[3/4] w-full overflow-hidden bg-gray-100 dark:bg-[#050505] relative">
+                    <div className="aspect-[3/4] w-full overflow-hidden bg-gray-100 dark:bg-black relative">
                       <img
                         src={listing.imageUrl}
                         alt={listing.title}
@@ -184,7 +184,7 @@ export const FavoritesPage: React.FC = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
                           <div className="flex items-center gap-1.5 sm:gap-2 truncate">
                             {listing.sellerPhoto ? (
-                              <img src={listing.sellerPhoto} alt={listing.sellerName} className="w-4 h-4 sm:w-6 sm:h-6 rounded-full" />
+                              <img src={listing.sellerPhoto} alt={listing.sellerName} className="w-4 h-4 sm:w-6 sm:h-6 rounded-full" loading="lazy"  referrerPolicy="no-referrer" />
                             ) : (
                               <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-200 dark:bg-white/10 rounded-full"></div>
                             )}

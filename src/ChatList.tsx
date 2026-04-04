@@ -72,7 +72,7 @@ export const ChatList: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white"></div>
         </div>
       ) : chats.length === 0 ? (
-        <div className="text-center py-24 bg-white dark:bg-[#0d0d0d] rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none">
+        <div className="text-center py-24 bg-white dark:bg-[#1c1c1e] rounded-3xl border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none">
           <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">沒有進行中的對話</h3>
           <p className="text-gray-500 dark:text-gray-400">當您聯絡賣家時，您的訊息會顯示在這裡。</p>
@@ -87,13 +87,14 @@ export const ChatList: React.FC = () => {
               transition={{ delay: index * 0.05 }}
             >
               <Link to={`/chat/${chat.id}`} className="block">
-                <div className="bg-white dark:bg-[#0d0d0d] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-md hover:border-gray-200 dark:hover:border-white/10 transition-all flex items-center gap-4 sm:gap-6">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gray-100 dark:bg-[#050505] flex-shrink-0 border border-gray-200 dark:border-white/10">
+                <div className="bg-white dark:bg-[#1c1c1e] rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 dark:border-white/5 hover:shadow-md hover:border-gray-200 dark:hover:border-white/10 transition-all flex items-center gap-4 sm:gap-6">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gray-100 dark:bg-black flex-shrink-0 border border-gray-200 dark:border-white/10">
                     <img 
                       src={chat.listingImageUrl} 
                       alt={chat.listingTitle} 
                       className="w-full h-full object-cover"
                       referrerPolicy="no-referrer"
+                      loading="lazy"
                     />
                   </div>
                   <div className="flex-grow min-w-0">

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Camera, MessageCircle, LogOut, User as UserIcon, X, BookOpen, Search, Heart, Sparkles, BadgeDollarSign, Plus } from 'lucide-react';
+import { Camera, MessageCircle, LogOut, User as UserIcon, X, BookOpen, Search, Heart, Sparkles, BadgeDollarSign, Plus, Sun, Moon, ShieldCheck, Home, Scan } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const Navbar: React.FC = () => {
@@ -9,9 +9,27 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
 
-  const handleGoogleSignIn = async () => {
-    await signInWithGoogle();
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   const handleProtectedAction = (e: React.MouseEvent) => {
@@ -27,118 +45,123 @@ export const Navbar: React.FC = () => {
     return false;
   };
 
+  const navLinks = [
+    { path: '/search', label: '搜尋', icon: Search },
+    { path: '/create', label: '賣卡區', icon: Camera, protected: true },
+    { path: '/create-want', label: '徵卡區', icon: Sparkles, protected: true },
+    { path: '/articles', label: '資訊', icon: BookOpen },
+    { path: '/portfolio', label: '投資組合', icon: BadgeDollarSign },
+    { path: '/chats', label: '訊息', icon: MessageCircle, protected: true },
+  ];
+
+  if (user && !user.isGuest && user.role === 'admin') {
+    navLinks.push({ path: '/admin', label: '管理員', icon: ShieldCheck, protected: true });
+  }
+
+  const isListingDetail = location.pathname.startsWith('/listing/');
+
   return (
     <>
+      {/* Desktop & Mobile Top Navbar */}
       <motion.nav 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        className="fixed top-0 left-0 right-0 z-40 bg-[var(--bg)]/70 backdrop-blur-xl border-b border-[var(--border)]"
+        className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-white/10 supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-black/60"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="relative w-9 h-9 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  {/* Card 1 (Bottom Left) */}
-                  <rect x="2" y="9" width="10" height="13" rx="1.5" className="fill-gray-400/20 stroke-gray-400 dark:stroke-white/20" strokeWidth="1" />
-                  {/* Card 2 (Middle) */}
-                  <rect x="6" y="5.5" width="10" height="13" rx="1.5" className="fill-gray-500/30 stroke-gray-500 dark:stroke-white/30" strokeWidth="1" />
-                  {/* Card 3 (Top Right) */}
-                  <rect x="10" y="2" width="10" height="13" rx="1.5" className="fill-red-600 stroke-white" strokeWidth="1.2" />
-                  {/* Twinkling Star */}
-                  <path 
-                    d="M18.5 3.5L19 5L20.5 5.5L19 6L18.5 7.5L18 6L16.5 5.5L18 5L18.5 3.5Z" 
-                    fill="white" 
-                    className="animate-pulse origin-center"
-                  />
+          <div className="flex justify-between items-center h-16 sm:h-20">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform duration-300">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 sm:w-6 sm:h-6">
+                  <rect x="2" y="9" width="10" height="13" rx="1.5" className="fill-white/20 stroke-white/50" strokeWidth="1" />
+                  <rect x="6" y="5.5" width="10" height="13" rx="1.5" className="fill-white/40 stroke-white/70" strokeWidth="1" />
+                  <rect x="10" y="2" width="10" height="13" rx="1.5" className="fill-white stroke-white" strokeWidth="1.2" />
+                  <path d="M18.5 3.5L19 5L20.5 5.5L19 6L18.5 7.5L18 6L16.5 5.5L18 5L18.5 3.5Z" fill="#3b82f6" className="animate-pulse origin-center" />
                 </svg>
               </div>
-              <span className="font-black text-xl tracking-tighter text-gray-900 dark:text-white italic">TCG INVEST</span>
+              <span className="font-black text-lg sm:text-xl tracking-tighter text-gray-900 dark:text-white italic">TCG INVEST</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden sm:flex items-center gap-4">
-              <Link to="/create" onClick={handleProtectedAction} className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/create') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <Camera className="w-5 h-5" />
-                <span>賣卡區</span>
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center gap-1 bg-gray-100/50 dark:bg-white/5 p-1.5 rounded-2xl border border-gray-200/50 dark:border-white/5">
+              {navLinks.map((link) => {
+                const active = isActive(link.path);
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={link.protected ? handleProtectedAction : undefined}
+                    className={`relative px-3 xl:px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${
+                      active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    {active && (
+                      <motion.div
+                        layoutId="desktop-nav-active"
+                        className="absolute inset-0 bg-white dark:bg-[#1a1a1a] rounded-xl shadow-sm border border-gray-200/50 dark:border-white/5"
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-1.5 xl:gap-2">
+                      <Icon className="w-4 h-4" />
+                      <span className="hidden xl:inline">{link.label}</span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Right Side Actions */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Link
+                to="/ai-scan"
+                className="p-2 sm:p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all active:scale-95 flex items-center gap-2"
+                title="AI 卡牌辨識"
+              >
+                <Scan className="w-5 h-5" />
+                <span className="hidden sm:inline text-sm font-bold">AI 辨識</span>
               </Link>
-              <Link to="/create-want" onClick={handleProtectedAction} className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/create-want') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <Search className="w-5 h-5" />
-                <span>徵卡區</span>
-              </Link>
-              <Link to="/articles" className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/article') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <BookOpen className="w-5 h-5" />
-                <span>資訊</span>
-              </Link>
-              <Link to="/market" className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/market') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <TrendingUp className="w-5 h-5" />
-                <span>行情</span>
-              </Link>
-              <Link to="/search" className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/search') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <Sparkles className="w-5 h-5" />
-                <span>AI 助手</span>
-              </Link>
-              <Link to="/portfolio" className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/portfolio') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <BadgeDollarSign className="w-5 h-5" />
-                <span>投資組合</span>
-              </Link>
-              <Link to="/chats" onClick={handleProtectedAction} className={`transition-colors flex items-center gap-1 text-sm font-medium ${isActive('/chat') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'}`}>
-                <MessageCircle className="w-5 h-5" />
-                <span>訊息</span>
-              </Link>
-              <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-2"></div>
               
+              <button
+                onClick={toggleTheme}
+                className="p-2 sm:p-2.5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all active:scale-95"
+                aria-label="Toggle theme"
+              >
+                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+              </button>
+
+              <div className="hidden sm:block h-6 w-px bg-gray-200 dark:bg-gray-800"></div>
+
               {user && !user.isGuest ? (
-                <div className="flex items-center gap-4">
-                  <Link to="/profile" className="flex items-center gap-2 group">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Link to="/profile" className="flex items-center gap-3 group p-1 sm:pr-3 bg-transparent sm:bg-gray-50 dark:bg-transparent sm:dark:bg-white/5 rounded-full sm:border border-gray-200/50 dark:border-white/5 hover:border-blue-200 dark:hover:border-blue-500/30 transition-all">
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 group-hover:border-blue-500 transition-colors" />
+                      <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full object-cover border border-gray-200 dark:border-gray-700"  referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-blue-500 transition-colors">
+                      <div className="w-8 h-8 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700">
                         <UserIcon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                       </div>
                     )}
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors hidden lg:block">{user.displayName}</span>
+                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 hidden sm:block max-w-[100px] truncate">
+                      {user.displayName || 'User'}
+                    </span>
                   </Link>
-                  <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
                   <button 
                     onClick={logOut}
-                    className="text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors flex items-center gap-1 text-sm font-medium"
+                    className="hidden lg:flex p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all active:scale-95"
+                    title="登出"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span className="hidden md:block">登出</span>
                   </button>
                 </div>
               ) : (
                 <Link
                   to="/auth"
-                  className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-200 transition-all active:scale-95"
+                  className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold hover:bg-gray-800 dark:hover:bg-gray-100 transition-all active:scale-95 shadow-sm"
                 >
-                  登入
-                </Link>
-              )}
-            </div>
-
-            {/* Mobile Top Right (Avatar / Login) */}
-            <div className="flex sm:hidden items-center gap-3">
-              {user && !user.isGuest ? (
-                <div className="flex items-center gap-3">
-                  <Link to="/profile" className="flex items-center">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-8 h-8 rounded-full border border-gray-200" />
-                    ) : (
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border border-gray-200">
-                        <UserIcon className="w-4 h-4 text-gray-500" />
-                      </div>
-                    )}
-                  </Link>
-                </div>
-              ) : (
-                <Link
-                  to="/auth"
-                  className="bg-gray-900 text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-all active:scale-95"
-                >
-                  登入
+                  登入 / 註冊
                 </Link>
               )}
             </div>
@@ -146,38 +169,48 @@ export const Navbar: React.FC = () => {
         </div>
       </motion.nav>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-[#050505]/80 backdrop-blur-xl border-t border-gray-200 dark:border-white/5 pb-safe">
-        <div className="flex justify-around items-center h-16 px-2 relative">
-          <Link to="/search" className={`flex flex-col items-center justify-center w-full h-full transition-colors ${isActive('/search') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
-            <Search className={`w-6 h-6 mb-1 ${isActive('/search') ? 'fill-blue-50 dark:fill-blue-900/30' : ''}`} />
-            <span className="text-[10px] font-medium">搜尋</span>
-          </Link>
-          <Link to="/favorites" onClick={handleProtectedAction} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${isActive('/favorites') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
-            <Heart className={`w-6 h-6 mb-1 ${isActive('/favorites') ? 'fill-blue-50 dark:fill-blue-900/30' : ''}`} />
-            <span className="text-[10px] font-medium">最愛</span>
-          </Link>
-          
-          {/* Center Pokeball Button */}
-          <div className="w-full h-full flex justify-center items-center relative">
-            <button 
-              onClick={() => setShowCreateMenu(true)}
-              className="absolute -top-5 w-14 h-14 bg-white dark:bg-[#0d0d0d] rounded-full border-4 border-gray-50 dark:border-[#050505] flex items-center justify-center shadow-lg text-red-500 hover:scale-105 transition-transform z-50"
-            >
-              <Plus className="w-8 h-8 stroke-[3]" />
-            </button>
-          </div>
+      {/* Mobile Bottom Navigation (Floating Pill Style) */}
+      {!isListingDetail && (
+        <div className="lg:hidden fixed bottom-6 left-4 right-4 z-40 pb-safe pointer-events-none">
+          <div className="bg-white/90 dark:bg-[#1c1c1e]/90 backdrop-blur-xl border border-gray-200/50 dark:border-white/10 rounded-3xl shadow-2xl shadow-black/5 dark:shadow-black/20 pointer-events-auto">
+            <div className="flex justify-around items-center h-16 px-2 relative">
+              <Link to="/" className={`flex flex-col items-center justify-center w-full h-full transition-colors relative group ${isActive('/') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                {isActive('/') && <motion.div layoutId="mobile-nav-active" className="absolute inset-1 bg-blue-50 dark:bg-blue-500/10 rounded-2xl -z-10" />}
+                <Home className={`w-5 h-5 mb-1 transition-transform group-active:scale-90 ${isActive('/') ? 'fill-blue-100 dark:fill-blue-900/50' : ''}`} />
+                <span className="text-[10px] font-bold">首頁</span>
+              </Link>
+              
+              <Link to="/search" className={`flex flex-col items-center justify-center w-full h-full transition-colors relative group ${isActive('/search') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                {isActive('/search') && <motion.div layoutId="mobile-nav-active" className="absolute inset-1 bg-blue-50 dark:bg-blue-500/10 rounded-2xl -z-10" />}
+                <Search className={`w-5 h-5 mb-1 transition-transform group-active:scale-90 ${isActive('/search') ? 'stroke-[2.5]' : ''}`} />
+                <span className="text-[10px] font-bold">搜尋</span>
+              </Link>
+              
+              {/* Center Create Button */}
+              <div className="w-full h-full flex justify-center items-center relative -mt-6">
+                <button 
+                  onClick={() => setShowCreateMenu(true)}
+                  className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-full border-4 border-white dark:border-[#1a1a1a] flex items-center justify-center shadow-lg shadow-blue-500/30 text-white hover:scale-105 active:scale-95 transition-all z-50"
+                >
+                  <Plus className="w-7 h-7 stroke-[2.5]" />
+                </button>
+              </div>
 
-          <Link to="/chats" onClick={handleProtectedAction} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${isActive('/chats') || isActive('/chat') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
-            <MessageCircle className={`w-6 h-6 mb-1 ${isActive('/chats') || isActive('/chat') ? 'fill-blue-50 dark:fill-blue-900/30' : ''}`} />
-            <span className="text-[10px] font-medium">訊息</span>
-          </Link>
-          <Link to="/profile" onClick={handleProtectedAction} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${isActive('/profile') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>
-            <UserIcon className={`w-6 h-6 mb-1 ${isActive('/profile') ? 'fill-blue-50 dark:fill-blue-900/30' : ''}`} />
-            <span className="text-[10px] font-medium">我的</span>
-          </Link>
+              <Link to="/chats" onClick={handleProtectedAction} className={`flex flex-col items-center justify-center w-full h-full transition-colors relative group ${isActive('/chats') || isActive('/chat') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                {isActive('/chats') || isActive('/chat') ? <motion.div layoutId="mobile-nav-active" className="absolute inset-1 bg-blue-50 dark:bg-blue-500/10 rounded-2xl -z-10" /> : null}
+                <MessageCircle className={`w-5 h-5 mb-1 transition-transform group-active:scale-90 ${isActive('/chats') || isActive('/chat') ? 'fill-blue-100 dark:fill-blue-900/50' : ''}`} />
+                <span className="text-[10px] font-bold">訊息</span>
+              </Link>
+              
+              <Link to="/profile" onClick={handleProtectedAction} className={`flex flex-col items-center justify-center w-full h-full transition-colors relative group ${isActive('/profile') ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                {isActive('/profile') && <motion.div layoutId="mobile-nav-active" className="absolute inset-1 bg-blue-50 dark:bg-blue-500/10 rounded-2xl -z-10" />}
+                <UserIcon className={`w-5 h-5 mb-1 transition-transform group-active:scale-90 ${isActive('/profile') ? 'fill-blue-100 dark:fill-blue-900/50' : ''}`} />
+                <span className="text-[10px] font-bold">我的</span>
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Create Menu Popup */}
       <AnimatePresence>
@@ -188,47 +221,60 @@ export const Navbar: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowCreateMenu(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 sm:hidden"
+              className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-50 lg:hidden"
             />
             <motion.div
-              initial={{ opacity: 0, y: 100, scale: 0.9 }}
+              initial={{ opacity: 0, y: 100, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 100, scale: 0.9 }}
-              className="fixed bottom-24 left-4 right-4 z-50 sm:hidden"
+              exit={{ opacity: 0, y: 100, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed bottom-28 left-4 right-4 z-50 lg:hidden"
             >
-              <div className="bg-white dark:bg-[#0d0d0d] rounded-[2rem] p-6 shadow-2xl border border-gray-100 dark:border-white/10 relative overflow-hidden">
+              <div className="bg-white dark:bg-[#1c1c1e] rounded-[2rem] p-6 shadow-2xl border border-gray-100 dark:border-white/10 relative overflow-hidden">
                 <button 
                   onClick={() => setShowCreateMenu(false)}
-                  className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-white/5 rounded-full text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
+                  className="absolute top-4 right-4 p-2 bg-gray-100 dark:bg-white/5 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">選擇發佈類型</h3>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white mb-6 text-center tracking-tight">選擇發佈類型</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <Link 
+                    to="/ai-scan"
+                    onClick={() => setShowCreateMenu(false)}
+                    className="col-span-2 flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all active:scale-95 group mb-2"
+                  >
+                    <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      <Scan className="w-7 h-7 text-white" />
+                    </div>
+                    <span className="font-black text-xl mb-1 tracking-tight">AI 全能發佈</span>
+                    <span className="text-xs font-bold text-blue-100 uppercase tracking-widest">拍照即刻識別並上架</span>
+                  </Link>
+
+                  <Link 
                     to="/create-want" 
                     onClick={(e) => { handleProtectedAction(e); setShowCreateMenu(false); }}
-                    className="flex flex-col items-center justify-center p-6 bg-blue-500 dark:bg-blue-600 rounded-3xl text-white hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors shadow-sm"
+                    className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl text-white hover:shadow-lg hover:shadow-indigo-500/25 transition-all active:scale-95 group"
                   >
-                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
-                      <Search className="w-8 h-8 text-white" />
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Search className="w-6 h-6 text-white" />
                     </div>
-                    <span className="font-bold text-lg mb-1">徵卡區</span>
-                    <span className="text-xs text-blue-100">發佈您的徵求</span>
+                    <span className="font-black text-base mb-1 tracking-tight">徵卡區</span>
+                    <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest">發佈您的徵求</span>
                   </Link>
                   
                   <Link 
                     to="/create" 
                     onClick={(e) => { handleProtectedAction(e); setShowCreateMenu(false); }}
-                    className="flex flex-col items-center justify-center p-6 bg-red-500 dark:bg-red-600 rounded-3xl text-white hover:bg-red-600 dark:hover:bg-red-700 transition-colors shadow-sm"
+                    className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-3xl text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all active:scale-95 group"
                   >
-                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-4">
-                      <Camera className="w-8 h-8 text-white" />
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                      <Camera className="w-6 h-6 text-white" />
                     </div>
-                    <span className="font-bold text-lg mb-1">上架賣卡</span>
-                    <span className="text-xs text-red-100">拍下您的收藏</span>
+                    <span className="font-black text-base mb-1 tracking-tight">上架賣卡</span>
+                    <span className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">拍下您的收藏</span>
                   </Link>
                 </div>
               </div>

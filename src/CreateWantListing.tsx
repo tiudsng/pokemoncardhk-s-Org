@@ -4,7 +4,8 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { useAuth } from './AuthContext';
 import imageCompression from 'browser-image-compression';
-import { UploadCloud, Loader2, Image as ImageIcon, Search, X, HelpCircle } from 'lucide-react';
+import { getCardDetails, getCardDetailsByNumber } from './services/geminiService';
+import { UploadCloud, Loader2, Image as ImageIcon, Search, X, HelpCircle, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ConditionBadge } from './components/ConditionBadge';
 import { OnboardingModal } from './components/OnboardingModal';
@@ -30,6 +31,7 @@ export const CreateWantListing: React.FC = () => {
   }, [user, navigate, setShowLoginModal]);
   
   const [title, setTitle] = useState('');
+  const [englishName, setEnglishName] = useState('');
   const [year, setYear] = useState('');
   const [set, setSet] = useState('');
   const [cardNumber, setCardNumber] = useState('');
@@ -40,10 +42,72 @@ export const CreateWantListing: React.FC = () => {
   const [cardType, setCardType] = useState<'RAW' | 'PSA 10' | 'PSA 9' | 'PSA 8' | 'BGS' | 'CGC'>('RAW');
   const [conditionDetails, setConditionDetails] = useState<string[]>([]);
   const [negotiation, setNegotiation] = useState<'Firm' | 'Negotiable'>('Firm');
+  const [rarity, setRarity] = useState('C');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [officialImageUrl, setOfficialImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isLookingUpNumber, setIsLookingUpNumber] = useState(false);
   const [error, setError] = useState('');
+
+  const handleAILookup = async () => {
+    if (!title) {
+      setError('請先輸入卡片名稱以進行 AI 搜尋。');
+      return;
+    }
+    setIsLookingUp(true);
+    setError('');
+    try {
+      const details = await getCardDetails(title);
+      if (details) {
+        if (details.englishName) setEnglishName(details.englishName);
+        if (details.year) setYear(details.year);
+        if (details.set) setSet(details.set);
+        if (details.cardNumber) setCardNumber(details.cardNumber);
+        if (details.rarity) setRarity(details.rarity);
+        if (details.description) setDescription(details.description);
+        if (details.estimatedPrice) setPrice(details.estimatedPrice.toString());
+        if (details.imageUrl) setOfficialImageUrl(details.imageUrl);
+      } else {
+        setError('無法找到該卡片的詳細數據，請手動填寫。');
+      }
+    } catch (err) {
+      console.error('AI Lookup error:', err);
+      setError('AI 搜尋發生錯誤。');
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
+  const handleNumberLookup = async () => {
+    if (!cardNumber) {
+      setError('請先輸入卡號以進行 AI 搜尋。');
+      return;
+    }
+    setIsLookingUpNumber(true);
+    setError('');
+    try {
+      const details = await getCardDetailsByNumber(cardNumber, set);
+      if (details) {
+        if (details.title) setTitle(details.title);
+        if (details.englishName) setEnglishName(details.englishName);
+        if (details.year) setYear(details.year);
+        if (details.set) setSet(details.set);
+        if (details.rarity) setRarity(details.rarity);
+        if (details.description) setDescription(details.description);
+        if (details.estimatedPrice) setPrice(details.estimatedPrice.toString());
+        if (details.imageUrl) setOfficialImageUrl(details.imageUrl);
+      } else {
+        setError('無法找到該卡號的詳細數據，請手動填寫。');
+      }
+    } catch (err) {
+      console.error('AI Lookup error:', err);
+      setError('AI 搜尋發生錯誤。');
+    } finally {
+      setIsLookingUpNumber(false);
+    }
+  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -101,14 +165,16 @@ export const CreateWantListing: React.FC = () => {
 
       await addDoc(collection(db, 'wantListings'), {
         title,
+        englishName,
         description,
-        targetPrice: parseFloat(price),
+        targetPrice: parseFloat(price) / 7.8,
         condition,
         cardType,
         conditionDetails,
         negotiation,
-        imageUrl: base64Images[0] || '',
-        imageUrls: base64Images,
+        rarity,
+        imageUrl: base64Images[0] || officialImageUrl || '',
+        imageUrls: base64Images.length > 0 ? base64Images : (officialImageUrl ? [officialImageUrl] : []),
         year,
         set,
         cardNumber,
@@ -131,20 +197,24 @@ export const CreateWantListing: React.FC = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen">
-      <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-        <div className="p-8 md:p-12">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="pt-20 sm:pt-24 pb-24 sm:pb-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto min-h-screen"
+    >
+      <div className="bg-white dark:bg-[#1c1c1e] sm:rounded-[2rem] sm:shadow-xl dark:shadow-none sm:border border-gray-100 dark:border-white/5 overflow-hidden -mx-4 sm:mx-0">
+        <div className="p-5 sm:p-8 md:p-12">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">徵卡區 - 我要徵卡</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">徵卡區 - 我要徵卡</h1>
             <button 
               onClick={() => setShowOnboarding(true)}
               className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-colors"
               title="查看徵卡引導"
             >
-              <HelpCircle className="w-6 h-6" />
+              <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">告訴賣家您想收購的卡片與預算。</p>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">告訴賣家您想收購的卡片與預算。</p>
 
           <OnboardingModal 
             isOpen={showOnboarding} 
@@ -154,18 +224,18 @@ export const CreateWantListing: React.FC = () => {
           {error && <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-xl mb-6 text-sm font-medium border border-red-100 dark:border-red-800">{error}</div>}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Image Upload & Preview */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <label className="block text-sm font-semibold text-gray-900 dark:text-white">卡片照片 (選填，最多 5 張)</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4">
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="relative aspect-[3/4] rounded-xl overflow-hidden group border border-gray-100 dark:border-gray-700 shadow-sm">
-                    <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                    <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover"  referrerPolicy="no-referrer" />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      className="absolute top-1 right-1 p-1.5 sm:p-1 bg-red-500 text-white rounded-full opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                     {index === 0 && (
                       <div className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white text-[10px] font-bold py-1 text-center">
@@ -176,8 +246,8 @@ export const CreateWantListing: React.FC = () => {
                 ))}
                 
                 {imagePreviews.length < 5 && (
-                  <div className="relative aspect-[3/4] border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer group">
-                    <UploadCloud className="w-8 h-8 text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
+                  <div className="relative aspect-[3/4] border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex flex-col items-center justify-center gap-1 sm:gap-2 cursor-pointer group">
+                    <UploadCloud className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 dark:text-gray-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
                     <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400">新增照片</p>
                     <input
                       type="file"
@@ -191,13 +261,13 @@ export const CreateWantListing: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 pt-2 sm:pt-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">徵求預覽 (列表顯示效果)</label>
-                <div className="bg-white dark:bg-gray-800 rounded-3xl p-5 shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col h-full max-w-[300px] mx-auto">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-md sm:shadow-lg border border-gray-100 dark:border-gray-700 flex flex-col h-full max-w-[300px] mx-auto">
                   <div className="flex items-start gap-4 mb-4">
-                    {imagePreviews[0] ? (
-                      <img src={imagePreviews[0]} alt="Preview" className="w-16 h-16 rounded-xl object-cover bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600" />
+                    {imagePreviews[0] || officialImageUrl ? (
+                      <img src={imagePreviews[0] || officialImageUrl || ''} alt="Preview" className="w-16 h-16 rounded-xl object-cover bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"  referrerPolicy="no-referrer" />
                     ) : (
                       <div className="w-16 h-16 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center">
                         <Search className="w-6 h-6 text-gray-300 dark:text-gray-500" />
@@ -222,39 +292,76 @@ export const CreateWantListing: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">卡片標題</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：徵求 初版 噴火龍" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" required />
-            </div>
+            <div className="space-y-5 sm:space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white">卡片標題 (自定名稱)</label>
+                  <button
+                    type="button"
+                    onClick={handleAILookup}
+                    disabled={isLookingUp || !title}
+                    className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 transition-colors py-1 px-2 -mr-2"
+                  >
+                    {isLookingUp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    AI 自動填寫
+                  </button>
+                </div>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：徵求 初版 噴火龍" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" required />
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">年份</label>
-              <input type="text" value={year} onChange={(e) => setYear(e.target.value)} placeholder="例如：2023" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
-            </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">英文名稱 (配對結果)</label>
+                <input type="text" value={englishName} onChange={(e) => setEnglishName(e.target.value)} placeholder="例如：Charizard" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">系列</label>
-              <input type="text" value={set} onChange={(e) => setSet(e.target.value)} placeholder="例如：151 SV2a" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">年份</label>
+                  <input type="text" value={year} onChange={(e) => setYear(e.target.value)} placeholder="例如：2023" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
+                </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">卡號</label>
-              <input type="text" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="例如：201/165" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
-            </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">系列</label>
+                  <input type="text" value={set} onChange={(e) => setSet(e.target.value)} placeholder="例如：151 SV2a" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">語言</label>
-              <select value={language} onChange={(e) => setLanguage(e.target.value as '日文' | '英文' | '中文')} className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none">
-                <option value="日文">日文</option>
-                <option value="英文">英文</option>
-                <option value="中文">中文</option>
-              </select>
-            </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white">卡號</label>
+                  <button
+                    type="button"
+                    onClick={handleNumberLookup}
+                    disabled={isLookingUpNumber || !cardNumber}
+                    className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 transition-colors py-1 px-2 -mr-2"
+                  >
+                    {isLookingUpNumber ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                    依卡號搜尋
+                  </button>
+                </div>
+                <input type="text" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} onBlur={() => { if (cardNumber && !title) { handleNumberLookup(); } }} placeholder="例如：201/165" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
+              </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">預算 (HKD)</label>
-              <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" required />
-            </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">稀有度</label>
+                  <input type="text" value={rarity} onChange={(e) => setRarity(e.target.value)} placeholder="例如：SAR, SR, UR" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">語言</label>
+                  <select value={language} onChange={(e) => setLanguage(e.target.value as '日文' | '英文' | '中文')} className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none">
+                    <option value="日文">日文</option>
+                    <option value="英文">英文</option>
+                    <option value="中文">中文</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">預算 (HKD)</label>
+                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" className="block w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900 py-3 px-4 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" required />
+              </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-900 dark:text-white mb-2">徵求卡片狀態 (概略)</label>
@@ -355,7 +462,9 @@ export const CreateWantListing: React.FC = () => {
               />
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50">
+            </div>
+
+            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-3.5 sm:py-4 rounded-xl font-bold hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50 mt-4 sm:mt-6">
               {loading ? '發佈中...' : '確認發佈徵卡'}
             </button>
           </form>

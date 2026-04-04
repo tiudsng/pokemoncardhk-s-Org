@@ -162,9 +162,9 @@ export const ChatDetail: React.FC = () => {
   const otherUserId = chat.participantIds.find(id => id !== user?.uid);
 
   return (
-    <div className="pt-16 flex flex-col h-[100dvh] bg-gray-50 dark:bg-[#050505] max-w-4xl mx-auto">
+    <div className="pt-16 flex flex-col h-[100dvh] bg-[var(--bg)] max-w-4xl mx-auto">
       {/* Chat Header */}
-      <div className="bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 px-4 py-3 flex items-center gap-4 sticky top-16 z-30 shadow-sm dark:shadow-none">
+      <div className="bg-white/80 dark:bg-[#1c1c1e]/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 px-4 py-3 flex items-center gap-4 sticky top-16 z-30 shadow-sm dark:shadow-none">
         <Link to="/chats" className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-600 dark:text-gray-400">
           <ArrowLeft className="w-6 h-6" />
         </Link>
@@ -174,6 +174,7 @@ export const ChatDetail: React.FC = () => {
             alt={chat.listingTitle} 
             className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-white/10 flex-shrink-0"
             referrerPolicy="no-referrer"
+            loading="lazy"
           />
           <div className="truncate">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white truncate">{chat.listingTitle}</h2>
@@ -266,7 +267,7 @@ export const ChatDetail: React.FC = () => {
                   className={`max-w-[75%] sm:max-w-[60%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm dark:shadow-none ${
                     isMe 
                       ? 'bg-blue-600 text-white rounded-br-sm' 
-                      : 'bg-white dark:bg-[#0d0d0d] text-gray-900 dark:text-white border border-gray-100 dark:border-white/5 rounded-bl-sm'
+                      : 'bg-white dark:bg-[#1c1c1e] text-gray-900 dark:text-white border border-gray-100 dark:border-white/5 rounded-bl-sm'
                   }`}
                 >
                   {msg.text}
@@ -279,14 +280,14 @@ export const ChatDetail: React.FC = () => {
       </div>
 
       {/* Input Area */}
-      <div className="bg-white dark:bg-[#0d0d0d] border-t border-gray-200 dark:border-white/5 p-4 pb-safe">
+      <div className="bg-white dark:bg-[#1c1c1e] border-t border-gray-200 dark:border-white/5 p-4 pb-safe">
         <form onSubmit={handleSendMessage} className="flex items-end gap-3 max-w-4xl mx-auto">
           <div className="flex-grow relative">
             <textarea
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="輸入訊息..."
-              className="w-full bg-gray-100 dark:bg-[#050505] border-transparent rounded-2xl py-3 pl-4 pr-12 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-[#0d0d0d] focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all resize-none outline-none overflow-hidden placeholder-gray-400 dark:placeholder-gray-500"
+              className="w-full bg-gray-100 dark:bg-black border-transparent rounded-2xl py-3 pl-4 pr-12 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-[#1c1c1e] focus:border-blue-500 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all resize-none outline-none overflow-hidden placeholder-gray-400 dark:placeholder-gray-500"
               rows={1}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

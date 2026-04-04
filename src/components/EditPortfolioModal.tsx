@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Save, Trash2, DollarSign, Calendar, Tag, Info } from 'lucide-react';
+import { X, Save, Trash2, DollarSign, Calendar, Tag, Info, Sparkles, Loader2, Hash, Layers } from 'lucide-react';
+import { getCardDetails, getCardDetailsByNumber } from '../services/geminiService';
 import { PortfolioItem } from '../types';
 
 interface EditPortfolioModalProps {
@@ -15,15 +16,64 @@ export const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({ isOpen, 
   const [title, setTitle] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [acquiredAt, setAcquiredAt] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [set, setSet] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [isLookingUpNumber, setIsLookingUpNumber] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const handleAILookup = async () => {
+    if (!title) return;
+    setIsLookingUp(true);
+    setAiError(null);
+    try {
+      const details = await getCardDetails(title);
+      if (details) {
+        if (details.estimatedPrice) setPurchasePrice(details.estimatedPrice.toString());
+        if (details.cardNumber) setCardNumber(details.cardNumber);
+        if (details.set) setSet(details.set);
+      } else {
+        setAiError("無法獲取卡片資訊，請檢查 API Key 或稍後再試。");
+      }
+    } catch (err) {
+      console.error('AI Lookup error:', err);
+      setAiError("AI 查詢出錯，請稍後再試。");
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
+
+  const handleNumberLookup = async () => {
+    if (!cardNumber) return;
+    setIsLookingUpNumber(true);
+    setAiError(null);
+    try {
+      const details = await getCardDetailsByNumber(cardNumber, set);
+      if (details) {
+        if (details.title) setTitle(details.title);
+        if (details.estimatedPrice) setPurchasePrice(details.estimatedPrice.toString());
+        if (details.set) setSet(details.set);
+      } else {
+        setAiError("無法根據卡號獲取資訊，請檢查 API Key 或稍後再試。");
+      }
+    } catch (err) {
+      console.error('AI Number Lookup error:', err);
+      setAiError("AI 查詢出錯，請稍後再試。");
+    } finally {
+      setIsLookingUpNumber(false);
+    }
+  };
 
   useEffect(() => {
     if (item) {
       setTitle(item.title);
-      setPurchasePrice(item.purchasePrice.toString());
+      setPurchasePrice((item.purchasePrice * 7.8).toFixed(0));
       const date = item.acquiredAt?.toDate ? item.acquiredAt.toDate() : new Date(item.acquiredAt);
       setAcquiredAt(date.toISOString().split('T')[0]);
+      setCardNumber(item.cardNumber || '');
+      setSet(item.set || '');
     }
   }, [item]);
 
@@ -36,8 +86,10 @@ export const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({ isOpen, 
       await onSave({
         ...item,
         title,
-        purchasePrice: parseFloat(purchasePrice) || 0,
-        acquiredAt: new Date(acquiredAt)
+        purchasePrice: (parseFloat(purchasePrice) || 0) / 7.8,
+        acquiredAt: new Date(acquiredAt),
+        cardNumber,
+        set
       });
       onClose();
     } catch (error) {
@@ -78,7 +130,7 @@ export const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({ isOpen, 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-lg bg-white dark:bg-[#0d0d0d] rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-white/5"
+            className="relative w-full max-w-lg bg-white dark:bg-[#1c1c1e] rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-white/5"
           >
             <div className="p-6 sm:p-8">
               <div className="flex justify-between items-center mb-8">
@@ -94,10 +146,34 @@ export const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({ isOpen, 
                 </button>
               </div>
 
+              {aiError && (
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-start gap-3">
+                  <div className="mt-0.5 p-1 bg-red-100 dark:bg-red-900/40 rounded-full">
+                    <X className="w-3 h-3 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-red-800 dark:text-red-300 leading-relaxed">
+                      {aiError}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSave} className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 ml-1">卡片名稱</label>
+                    <div className="flex items-center justify-between mb-2 ml-1">
+                      <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">卡片名稱</label>
+                      <button
+                        type="button"
+                        onClick={handleAILookup}
+                        disabled={isLookingUp || !title}
+                        className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 transition-colors"
+                      >
+                        {isLookingUp ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                        AI 獲取市價
+                      </button>
+                    </div>
                     <div className="relative">
                       <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
@@ -111,8 +187,49 @@ export const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({ isOpen, 
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2 ml-1">
+                        <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">卡號</label>
+                        <button
+                          type="button"
+                          onClick={handleNumberLookup}
+                          disabled={isLookingUpNumber || !cardNumber}
+                          className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50 transition-colors"
+                        >
+                          {isLookingUpNumber ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                          AI 搜尋
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={cardNumber}
+                          onChange={(e) => setCardNumber(e.target.value)}
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-white/5 border-none rounded-2xl text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-red-500 transition-all"
+                          placeholder="例如：201/165"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 ml-1">系列</label>
+                      <div className="relative">
+                        <Layers className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                          type="text"
+                          value={set}
+                          onChange={(e) => setSet(e.target.value)}
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-white/5 border-none rounded-2xl text-gray-900 dark:text-white font-bold focus:ring-2 focus:ring-red-500 transition-all"
+                          placeholder="例如：151 SV2a"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 ml-1">入手價格 (NT$)</label>
+                    <label className="block text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2 ml-1">入手價格 (HK$)</label>
                     <div className="relative">
                       <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <input
@@ -176,7 +293,3 @@ export const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({ isOpen, 
     </AnimatePresence>
   );
 };
-
-const Loader2 = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-);

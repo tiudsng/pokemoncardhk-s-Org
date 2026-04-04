@@ -20,22 +20,22 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
     switch (activeTab) {
       case 'GRADED':
         return {
-          price: 1889,
-          change: '+HK$210',
+          price: 1889 * 7.8,
+          change: '+HK$' + (210 * 7.8).toLocaleString(undefined, { maximumFractionDigits: 0 }),
           percent: '+12.5%',
           isUp: true
         };
       case 'POP':
         return {
-          price: 150000,
-          change: '-HK$18.32',
+          price: 150000 * 7.8,
+          change: '-HK$' + (18.32 * 7.8).toLocaleString(undefined, { maximumFractionDigits: 2 }),
           percent: '-4.08%',
           isUp: false
         };
       default:
         return {
           price: currentPrice,
-          change: '-HK$18.32',
+          change: '-HK$' + (18.32 * 7.8).toLocaleString(undefined, { maximumFractionDigits: 2 }),
           percent: '-4.08%',
           isUp: false
         };
@@ -45,11 +45,10 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
   const currentTabData = getTabData();
 
   return (
-    <div className="bg-white dark:bg-[#0d0d0d] rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-8 shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 mt-8 sm:mt-12 overflow-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-8">
+    <div className="bg-gray-50 dark:bg-[#141414] rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-gray-100 dark:border-white/5 mb-6 sm:mb-8 overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">價格走勢</h3>
+          <div className="flex items-center gap-2 mb-1 sm:mb-2">
             <div className="group relative">
               <Info className="w-4 h-4 text-gray-400 dark:text-gray-500 cursor-help" />
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-gray-900 dark:bg-[#16161a] text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 border border-white/10">
@@ -58,9 +57,9 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tighter">HK${currentTabData.price.toLocaleString()}</span>
+            <span className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tighter">HK${currentTabData.price.toLocaleString()}</span>
             <div className={`flex items-center gap-1 font-bold text-xs sm:text-sm ${currentTabData.isUp ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-              {currentTabData.isUp ? <TrendingUp className="w-3 h-3 sm:w-4 h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 h-4" />}
+              {currentTabData.isUp ? <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
               <span>{currentTabData.change} ({currentTabData.percent})</span>
             </div>
           </div>
@@ -68,15 +67,15 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
       </div>
 
       {/* Tabs */}
-      <div className="bg-gray-50 dark:bg-white/5 p-1 rounded-2xl flex gap-1 mb-8 w-full sm:w-fit border border-gray-100 dark:border-white/10">
+      <div className="bg-white dark:bg-black p-1 rounded-xl sm:rounded-2xl flex gap-1 mb-6 sm:mb-8 w-full sm:w-fit border border-gray-100 dark:border-white/5">
         {(['RAW', 'GRADED', 'POP'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl text-[11px] sm:text-xs font-black tracking-widest transition-all duration-300 ${
+            className={`flex-1 sm:flex-none px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${
               activeTab === tab 
-                ? 'bg-white dark:bg-[#16161a] text-blue-600 dark:text-blue-400 shadow-sm border-2 border-blue-600 dark:border-blue-500' 
-                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border-2 border-transparent'
+                ? 'bg-gray-100 dark:bg-[#141414] text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-white/10' 
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border border-transparent'
             }`}
           >
             {tab}
@@ -93,16 +92,16 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
       )}
 
       {/* Chart */}
-      <div className="h-[350px] w-full -ml-4">
+      <div className="h-[280px] sm:h-[350px] w-full sm:-ml-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={activeTab === 'GRADED' ? [
-            { name: 'Jan', price: 897 },
-            { name: 'Jan 15', price: 950 },
-            { name: 'Feb', price: 1200 },
-            { name: 'Feb 15', price: 1350 },
-            { name: 'Mar', price: 1889 },
-            { name: 'Mar 15', price: 1750 },
-          ] : data}>
+            { name: 'Jan', price: 897 * 7.8 },
+            { name: 'Jan 15', price: 950 * 7.8 },
+            { name: 'Feb', price: 1200 * 7.8 },
+            { name: 'Feb 15', price: 1350 * 7.8 },
+            { name: 'Mar', price: 1889 * 7.8 },
+            { name: 'Mar 15', price: 1750 * 7.8 },
+          ] : data.map(d => ({ ...d, price: d.price * 7.8 }))}>
             <defs>
               <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.1}/>
@@ -117,7 +116,7 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
               tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
               dy={10}
             />
-            <YAxis hide domain={activeTab === 'GRADED' ? [800, 2000] : [200, 500]} />
+            <YAxis hide domain={activeTab === 'GRADED' ? [800 * 7.8, 2000 * 7.8] : [200 * 7.8, 500 * 7.8]} />
             <Tooltip 
               contentStyle={{ 
                 borderRadius: '16px', 
@@ -171,23 +170,23 @@ export const PriceHistory: React.FC<{ currentPrice: number }> = ({ currentPrice 
             <h4 className="text-sm font-black text-gray-900 dark:text-white">PSA - Holofoil</h4>
           </div>
           
-          <div className="grid grid-cols-5 border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-3 sm:grid-cols-5 border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden">
             {[
-              { grade: '10', price: '$1.78K', pop: '26745', active: true },
-              { grade: '9', price: '$506', pop: '45118' },
-              { grade: '8.5', price: '$405', pop: '427' },
-              { grade: '8', price: '$394', pop: '16350' },
-              { grade: '7', price: '$301', pop: '2874' },
+              { grade: '10', price: 'HK$13.8K', pop: '26745', active: true },
+              { grade: '9', price: 'HK$3.9K', pop: '45118' },
+              { grade: '8.5', price: 'HK$3.1K', pop: '427' },
+              { grade: '8', price: 'HK$3.0K', pop: '16350' },
+              { grade: '7', price: 'HK$2.3K', pop: '2874' },
             ].map((item) => (
               <div 
                 key={item.grade}
-                className={`flex flex-col items-center justify-center py-4 border-r last:border-r-0 border-gray-100 dark:border-white/5 transition-colors ${
+                className={`flex flex-col items-center justify-center py-3 sm:py-4 border-r border-b sm:border-b-0 last:border-r-0 border-gray-100 dark:border-white/5 transition-colors ${
                   item.active ? 'bg-cyan-50/50 dark:bg-cyan-900/20' : 'hover:bg-gray-50 dark:hover:bg-white/5'
                 }`}
               >
-                <span className={`text-xs font-black mb-1 ${item.active ? 'text-cyan-700 dark:text-cyan-400' : 'text-gray-900 dark:text-gray-300'}`}>{item.grade}</span>
-                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-1">{item.price}</span>
-                <span className="text-[9px] font-medium text-gray-400 dark:text-gray-500">{item.pop}</span>
+                <span className={`text-[10px] sm:text-xs font-black mb-0.5 sm:mb-1 ${item.active ? 'text-cyan-700 dark:text-cyan-400' : 'text-gray-900 dark:text-gray-300'}`}>{item.grade}</span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">{item.price}</span>
+                <span className="text-[8px] sm:text-[9px] font-medium text-gray-400 dark:text-gray-500">{item.pop}</span>
               </div>
             ))}
           </div>

@@ -135,9 +135,95 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["followerId", "followedId", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a listing",
+      "type": "object",
+      "properties": {
+        "listingId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhoto": { "type": "string" },
+        "rating": { "type": "number", "description": "Rating from 1 to 5" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["listingId", "userId", "userName", "rating", "text", "createdAt"]
+    },
+    "Article": {
+      "title": "Article",
+      "description": "An AI-generated or manual TCG article",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "readTime": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "excerpt", "content", "category", "readTime", "imageUrl", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "A Pokémon card product in the database",
+      "type": "object",
+      "properties": {
+        "card_id": { "type": "string" },
+        "name_zh": { "type": "string" },
+        "name_jp": { "type": "string" },
+        "set_name": { "type": "string" },
+        "card_no": { "type": "string" },
+        "image_url": { "type": "string" },
+        "snkrdunk_id": { "type": "string" },
+        "ebay_keyword": { "type": "string" },
+        "rarity": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["card_id", "name_zh", "set_name", "image_url"]
+    },
+    "TrafficStats": {
+      "title": "TrafficStats",
+      "description": "Total traffic statistics",
+      "type": "object",
+      "properties": {
+        "totalViews": { "type": "number" }
+      },
+      "required": ["totalViews"]
+    },
+    "DailyStats": {
+      "title": "DailyStats",
+      "description": "Daily traffic statistics",
+      "type": "object",
+      "properties": {
+        "views": { "type": "number" },
+        "date": { "type": "string" }
+      },
+      "required": ["views", "date"]
+    },
+    "CardPrice": {
+      "title": "CardPrice",
+      "description": "Latest price data for a Pokémon card",
+      "type": "object",
+      "properties": {
+        "card_name": { "type": "string" },
+        "latest_price_hkd": { "type": "number" },
+        "change_percent": { "type": "string" },
+        "url": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["card_name", "latest_price_hkd", "change_percent", "url"]
     }
   },
   "firestore": {
+    "card_prices/{cardId}": {
+      "schema": { "$ref": "#/entities/CardPrice" },
+      "description": "Latest market prices for cards"
+    },
     "users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "User profiles"
@@ -173,6 +259,26 @@
     "follows/{followId}": {
       "schema": { "$ref": "#/entities/Follow" },
       "description": "Follow relationships between users"
+    },
+    "comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Comments on listings"
+    },
+    "articles/{articleId}": {
+      "schema": { "$ref": "#/entities/Article" },
+      "description": "A collection of TCG articles"
+    },
+    "products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Master list of Pokémon card products"
+    },
+    "analytics/traffic": {
+      "schema": { "$ref": "#/entities/TrafficStats" },
+      "description": "Total traffic statistics"
+    },
+    "analytics/traffic/daily/{date}": {
+      "schema": { "$ref": "#/entities/DailyStats" },
+      "description": "Daily traffic statistics"
     }
   }
 }

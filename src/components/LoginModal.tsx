@@ -26,11 +26,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative bg-white dark:bg-gray-800 rounded-3xl shadow-2xl dark:shadow-none border border-gray-100 dark:border-gray-700 w-full max-w-sm p-8 text-center"
+            className="relative bg-white dark:bg-[#1c1c1e] rounded-3xl shadow-2xl dark:shadow-none border border-gray-100 dark:border-white/10 w-full max-w-sm p-8 text-center"
           >
             <button 
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -47,7 +47,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 await signInWithGoogle();
                 onClose();
               }}
-              className="w-full py-4 px-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-2xl font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+              className="w-full py-4 px-6 bg-white dark:bg-black border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 rounded-2xl font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-[#1c1c1e] hover:border-gray-300 dark:hover:border-white/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

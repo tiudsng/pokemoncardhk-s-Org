@@ -5,54 +5,84 @@ export interface User {
   photoURL: string;
   bio?: string;
   createdAt: any;
-  rating: number; // 0-5
-  totalReviews: number;
-  completedTransactions: number;
-  isProfessionalSeller?: boolean;
   followersCount?: number;
+  followingCount?: number;
   role?: 'admin' | 'user';
   displayNameChanged?: boolean;
+  isProfessionalSeller?: boolean;
+  completedTransactions?: number;
+  rating?: number;
+  totalReviews?: number;
 }
 
 export interface Listing {
   id: string;
   title: string;
+  englishName?: string;
   description: string;
   price: number;
-  condition: 'Mint' | 'Near Mint' | 'Excellent' | 'Good' | 'Lightly Played' | 'Played' | 'Poor';
-  cardType?: 'RAW' | 'PSA 10' | 'PSA 9' | 'PSA 8' | 'BGS' | 'CGC';
-  conditionDetails?: string[]; // 美品, 有白邊, 有白點, 有卡傷
-  negotiation?: 'Firm' | 'Negotiable';
-  attribute?: '水' | '火' | '草' | '電' | '超' | '鬥' | '惡' | '鋼' | '妖' | '龍' | '無';
-  rarity?: 'UR' | 'SAR' | 'SR' | 'SSR' | 'HR' | 'AR' | 'C' | 'U' | 'R';
   imageUrl: string;
   imageUrls?: string[];
+  category: string;
+  condition: string;
+  conditionDetails?: string[];
+  set: string;
+  cardNumber: string;
   sellerId: string;
   sellerName: string;
   sellerPhoto: string;
   sellerRating?: number;
-  sellerTotalReviews?: number;
   sellerCompletedTransactions?: number;
   sellerIsProfessionalSeller?: boolean;
-  sellerCreatedAt?: any;
-  status: 'active' | 'reserved' | 'sold';
   createdAt: any;
+  status: 'active' | 'sold' | 'pending' | 'reserved';
+  views?: number;
+  likes?: number;
+  negotiation?: string | boolean;
+  cardType?: string;
+  rarity?: string;
+  attribute?: string;
+  language?: string;
   year?: string;
+}
+
+export interface WantListing {
+  id: string;
+  title: string;
+  englishName?: string;
+  description: string;
+  budget: number;
+  targetPrice?: number;
+  imageUrl?: string;
+  imageUrls?: string[];
+  category: string;
+  condition?: string;
   set?: string;
   cardNumber?: string;
-  language?: '日文' | '英文' | '中文';
+  userId: string;
+  userName: string;
+  userPhoto: string;
+  userRating?: number;
+  userTotalReviews?: number;
+  createdAt: any;
+  status: 'active' | 'found' | 'pending';
+  negotiation?: string | boolean;
+  cardType?: string;
 }
 
 export interface Chat {
   id: string;
-  participantIds: string[];
-  listingId: string;
-  listingTitle: string;
-  listingImageUrl: string;
+  participants: string[];
+  participantIds?: string[];
   lastMessage?: string;
   lastMessageAt?: any;
-  createdAt: any;
+  listingId?: string;
+  listingTitle?: string;
+  listingImage?: string;
+  listingImageUrl?: string;
+  createdAt?: any;
 }
+
 export interface Message {
   id: string;
   chatId: string;
@@ -63,49 +93,64 @@ export interface Message {
 
 export interface Review {
   id: string;
-  sellerId: string;
-  buyerId: string;
-  buyerName: string;
-  buyerPhoto: string;
-  listingId: string;
-  listingTitle: string;
+  targetUserId: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto: string;
+  buyerId?: string;
+  buyerName?: string;
+  buyerPhoto?: string;
   rating: number;
-  comment: string;
+  text: string;
+  comment?: string;
+  listingTitle?: string;
   createdAt: any;
 }
 
-export interface WantListing {
+export interface Comment {
   id: string;
-  title: string;
-  targetPrice: number;
-  imageUrl?: string;
-  imageUrls?: string[];
-  condition?: 'Mint' | 'Near Mint' | 'Excellent' | 'Good' | 'Lightly Played' | 'Played' | 'Poor';
-  cardType?: 'RAW' | 'PSA 10' | 'PSA 9' | 'PSA 8' | 'BGS' | 'CGC';
-  conditionDetails?: string[];
-  negotiation?: 'Firm' | 'Negotiable';
-  buyerId: string;
-  buyerName: string;
-  buyerPhoto: string;
-  buyerRating?: number;
-  buyerTotalReviews?: number;
+  listingId: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto: string;
+  userName?: string;
+  userPhoto?: string;
+  text: string;
+  rating?: number;
   createdAt: any;
-  year?: string;
-  set?: string;
-  cardNumber?: string;
-  language?: '日文' | '英文' | '中文';
 }
 
 export interface PortfolioItem {
   id: string;
-  listingId: string;
   title: string;
-  imageUrl: string;
+  set: string;
+  cardNumber: string;
   purchasePrice: number;
+  currentValue?: number;
   acquiredAt: any;
+  imageUrl: string;
+  condition?: string;
+  quantity?: number;
 }
 
 export interface Portfolio {
+  id: string;
   userId: string;
   items: PortfolioItem[];
+  totalValue: number;
+  totalCost: number;
+  updatedAt: any;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  imageUrl: string;
+  category: string;
+  authorName: string;
+  authorPhoto: string;
+  publishedAt: any;
+  readTime: string;
 }
